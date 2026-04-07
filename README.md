@@ -165,7 +165,7 @@ flowchart TD
 | :----------------------- | :------------ | :------------------------------------------------------------------------------------------------------------------- |
 | **Tunde Ademola Kujore** | Product Owner | [GitHub](https://github.com/Dhemmyhardy) / [LinkedIn](https://www.linkedin.com/in/tundeademolakujore)                |
 | **Daniel Kwame Afriyie** | Scrum Master  | [GitHub](https://github.com/dk-afriyie) / [LinkedIn](http://www.linkedin.com/in/danielkafriyie)                      |
-| **Katie Hill**           | Web Developer | [GitHub]((https://github.com/KatieHill-Fr-Gr) / [LinkedIn](https://linkedin.com/in/katie-hill-fullstack)             |
+| **Katie Hill**           | Web Developer | [GitHub](https://github.com/KatieHill-Fr-Gr) / [LinkedIn](https://linkedin.com/in/katie-hill-fullstack)              |
 | **Alwin Puche**          | Web Developer | [GitHub](https://github.com/awyyyn) / [LinkedIn](https://www.linkedin.com/in/lashtun/)                               |
 | **Nadiia Lashtun**       | Web Developer | [GitHub](https://github.com/NadiiaLashtun) / [LinkedIn](https://www.linkedin.com/in/lashtun/)                        |
 | **Pratyusha Dasari**     | Web Developer | [GitHub](https://github.com/pratyusha-ds) / [LinkedIn](https://www.linkedin.com/in/pratyusha-ds/)                    |
