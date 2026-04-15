@@ -1,10 +1,11 @@
-import { Button } from "@repo/ui/components/button";
+import { Routes, Route } from 'react-router';
 
 function App() {
   return (
-    <>
-      <h1>Hello World</h1>
-      <Button className="">asdasda</Button>
+      <>
+      <Routes>
+        <Route path='/dashboard' element={<Dashboard />} />
+      </Routes>
     </>
   );
 }
