@@ -6,15 +6,15 @@ import path from "path";
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [
-    react(),
-    babel({ presets: [reactCompilerPreset()] }),
-    tailwindcss(),
-  ],
-  resolve: {
-    alias: {
-      "@/": path.resolve(__dirname, "./src"),
-      "@repo/ui": path.resolve(__dirname, "../../packages/ui/src"),
-    },
-  },
+	plugins: [
+		react(),
+		babel({ presets: [reactCompilerPreset()] }),
+		tailwindcss(),
+	],
+	resolve: {
+		alias: {
+			"@": path.resolve(__dirname, "./src"),
+			"@repo/ui": path.resolve(__dirname, "../../packages/ui/src"),
+		},
+	},
 });
