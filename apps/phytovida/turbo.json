@@ -1,9 +1,10 @@
 {
-  "extends": ["//"],
-  "tasks": {
-    "build": {
-      "env": ["API"],
-      "outputs": ["dist/**"]
-    }
-  }
+	"extends": ["//"],
+	"tasks": {
+		"dev": {
+			"cache": false,
+			"persistent": true,
+			"with": ["api#dev"]
+		}
+	}
 }
