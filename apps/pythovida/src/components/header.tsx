@@ -1,5 +1,5 @@
 import logo from "@/assets/logo.svg";
-import { SignInButton, SignOutButton, useAuth } from "@clerk/react";
+import { SignOutButton, useAuth } from "@clerk/react";
 import { Button } from "@repo/ui/components/button";
 import { ArrowUpRight, LogOut } from "lucide-react";
 import { Link } from "react-router";
