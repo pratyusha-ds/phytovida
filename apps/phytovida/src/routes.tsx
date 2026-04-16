@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from "react-router";
 import Home from "./pages/Home";
 import NotFound from "./pages/NotFound";
+import Dashboard from "./pages/Dashboard";
 import CommonLayout from "./layouts/common-layout";
 import SignInPage from "./pages/auth/SignIn";
 import AuthLayout from "./layouts/auth-layout";
@@ -14,6 +15,7 @@ export default function AppRoutes() {
 			</Route>
 			<Route path="/" element={<CommonLayout />}>
 				<Route index element={<Home />} />
+				<Route path="dashboard" element={<Dashboard />} />
 				<Route path="test" element={<p>Test</p>} />
 			</Route>
 			<Route path="*" element={<NotFound />} />
