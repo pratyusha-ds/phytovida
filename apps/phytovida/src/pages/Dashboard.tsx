@@ -1,4 +1,6 @@
 import { Button } from "@repo/ui/components/button";
+import { PlantCalendar } from "../components/PlantCalendar";
+
 import { Link } from "react-router";
 
 export default function Dashboard() {
@@ -35,6 +37,10 @@ export default function Dashboard() {
                     <p className="text-white/80">Cloudy with 40% chance of rain</p>
                     <p className="text-white/80">Humidity 69%</p>
                 </div>
+            </div>
+
+            <div>
+                <PlantCalendar />
             </div>
 
         </div>
