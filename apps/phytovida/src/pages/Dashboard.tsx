@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { Button } from "@repo/ui/components/button";
-// import { LocationCard } from "../components/LocationCard";
-// import { WeatherCard } from "../components/WeatherCard";
+import { LocationCard } from "../components/LocationCard";
+import { WeatherCard } from "../components/WeatherCard";
 import { TaskList } from "../components/TaskList";
 import { PlantCalendar } from "../components/PlantCalendar";
 import { Link } from "react-router";
@@ -43,25 +43,10 @@ export default function Dashboard() {
       </div>
 
       <div className="min-h-1/2 flex flex-col md:flex-row items-stretch mt-6 px-4">
-        <div className="flex-1 flex flex-col items-start p-6 gap-4">
-          <h2>{data?.location || "London, UK"} – Spring</h2>
-          <p>
-            Spring in {data?.location || "London"} is a wonderful time for
-            gardening!
-          </p>
-          <Button
-            className="rounded-full bg-accent2"
-            variant="secondary"
-            asChild
-          >
-            <Link to="/settings">Change location</Link>
-          </Button>
-        </div>
+        <LocationCard location={data?.location ?? "London, UK"} />
 
         <div className="flex-1 flex flex-col items-start bg-accent1 rounded-xl p-8 gap-6">
-          <h2 className="text-white leading-none">18°C</h2>
-          <p className="text-white/80">Cloudy with 40% chance of rain</p>
-          <p className="text-white/80">Humidity 69%</p>
+          <WeatherCard />
         </div>
       </div>
 
