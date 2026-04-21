@@ -16,6 +16,7 @@
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
+		"@clerk/express": "^2.1.5",
 		"@faker-js/faker": "^10.4.0",
 		"@repo/types": "workspace:^",
 		"body-parser": "^2.2.2",
