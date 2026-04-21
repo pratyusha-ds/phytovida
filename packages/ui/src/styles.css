@@ -31,7 +31,7 @@
   --radius: 0.75rem;
 
   --shadow-2xs: 0px 1px 3px 0px oklch(0.35 0.05 163.02 / 0.02);
-  --shadow-xs: 0px 1px 3px 0px oklch(0.35 0.05 163.02 / 0.02);
+  --shadow-xs: 0px 1px 3px 0px oklch(0.38 0.07 145 / 0.75);
   --shadow-sm:
     0px 1px 3px 0px oklch(0.35 0.05 163.02 / 0.04),
     0px 1px 2px -1px oklch(0.35 0.05 163.02 / 0.04);
@@ -58,7 +58,7 @@
   --accent4: oklch(0 0 0);
   --accent5: oklch(0.92 0.02 160);
   --accent6: oklch(0.63 0 0);
-  --divider: oklch(0.3 0 0);
+  --divider: oklch(95.88% 0 0);
   --headline: oklch(0.92 0.02 160);
   --paragraph: oklch(0.85 0 0);
   --captions: oklch(0.65 0 0);
@@ -67,7 +67,7 @@
   --error: oklch(0.58 0.18 25);
 
   --shadow-2xs: 0px 1px 2px 0px oklch(0 0 0 / 0.01);
-  --shadow-xs: 0px 1px 2px 0px oklch(0 0 0 / 0.01);
+  --shadow-xs: 0px 1px 3px 0px oklch(0.38 0.07 145 / 0.5);
   --shadow-sm:
     0px 1px 2px 0px oklch(0 0 0 / 0.01), 0px 1px 2px -1px oklch(0 0 0 / 0.01);
   --shadow:
@@ -140,5 +140,36 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  h1, h2, h3, h4, h5, h6 {
+    color: var(--headline);
+    font-family: var(--font-serif);
+  }
+
+  h1 { font-size: 3rem; font-weight: 500; line-height: 1.15; }
+  h2 { font-size: 2rem;   font-weight: 500; line-height: 1.2;  }
+  h3 { font-size: 1.5rem; font-weight: 400; line-height: 1.25; }
+  h4 { font-size: 1.25rem; font-weight: 400; line-height: 1.3; }
+
+  p {
+    color: var(--paragraph);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  a {
+    color: var(--link);
+    text-decoration: none;
+    transition: color 200ms;
+  }
+  a:hover { color: var(--link-hover); }
+
+  small, .caption {
+    color: var(--captions);
+    font-size: 0.75rem;
+    line-height: 1.4;
+  }
 }
+
 

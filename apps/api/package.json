@@ -14,11 +14,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@repo/types": "workspace:^",
     "body-parser": "^2.2.2",
     "cors": "^2.8.6",
     "dotenv": "^17.4.1",
+    "drizzle-orm": "^0.45.2",
     "express": "^5.2.1",
-    "jsonwebtoken": "^9.0.3"
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.20.0"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
@@ -27,6 +30,8 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^25.5.2",
+    "@types/pg": "^8.20.0",
+    "drizzle-kit": "^0.31.10",
     "eslint": "^10.2.0",
     "globals": "^17.4.0",
     "jiti": "^2.6.1",
