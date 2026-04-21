@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { Button } from "@repo/ui/components/button";
-import { LocationCard } from "../components/LocationCard";
-import { WeatherCard } from "../components/WeatherCard";
-import { TaskList } from "../components/TaskList";
+// import { LocationCard } from "../components/LocationCard";
+// import { WeatherCard } from "../components/WeatherCard";
+// import { TaskList } from "../components/TaskList";
 import { PlantCalendar } from "../components/PlantCalendar";
 import { Link } from "react-router";
 import type { DashboardResponse } from "@repo/types";
