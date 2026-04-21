@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import { getAuth } from "@clerk/express";
 
-export async function authorize(
+export async function authGuard(
 	req: Request,
 	res: Response,
 	next: NextFunction,
