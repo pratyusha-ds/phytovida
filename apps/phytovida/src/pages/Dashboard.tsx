@@ -1,6 +1,7 @@
 import { Button } from "@repo/ui/components/button";
 import { LocationCard } from "../components/LocationCard";
 import { WeatherCard } from "../components/WeatherCard";
+import { TaskList } from "../components/TaskList";
 import { PlantCalendar } from "../components/PlantCalendar";
 
 import { Link } from "react-router";
@@ -26,7 +27,7 @@ export default function Dashboard() {
             <div className="min-h-1/2 flex flex-col md:flex-row items-stretch mt-6 px-4">
                 {/* Left box */}
                 <div className="flex-1 flex flex-col items-start p-6 gap-4">
-                  <LocationCard />
+                    <LocationCard />
                 </div>
 
                 {/* Right box */}
@@ -37,29 +38,12 @@ export default function Dashboard() {
             <div className="min-h-1/2 flex flex-col md:flex-row items-stretch mt-6 px-4">
                 <div className="flex-1 flex flex-col items-start p-6 gap-4">
                     <h2>Today's tasks</h2>
+                    <TaskList />
                 </div>
+
             </div>
 
-            {/* // TODO: Add task list component */}
-            <div className="min-h-1/2 flex flex-col md:flex-row items-stretch mt-6 px-4">
-                {/* First box */}
-                <div className="flex-1 flex flex-col items-start p-6 gap-4">
-                    <h2 className="leading-none">1</h2>
-                    <p>Water tomato plants</p>
-                </div>
-                {/* Second box */}
-                <div className="flex-1 flex flex-col items-start p-8 gap-6">
-                    <h2 className="leading-none">2</h2>
-                    <p>Plant seeds</p>
-                </div>
-                {/* Third box */}
-                <div className="flex-1 flex flex-col items-start p-8 gap-6">
-                    <h2 className="leading-none">3</h2>
-                    <p>Add fertilizer</p>
-                </div>
-            </div>
-
-            {/* // TODO: Add tasks (reminders?) and badge component ("Planting", "Watering") */}
+            {/* // TODO: Add task dot indicators (reminders?) and badge component ("Planting", "Watering") */}
             <div className="min-h-1/2 flex flex-col md:flex-row justify-center mt-6 px-4">
                 <PlantCalendar />
             </div>
