@@ -1,13 +1,16 @@
+// Plant Watering log type
+export * from "./log";
+
 // Dashboard
 export interface Plant {
-  id: number;
-  name: string;
-  image: string | null;
-  waterFrequency: number;
-  lastWatered: string | null;
+	id: number;
+	name: string;
+	image: string | null;
+	waterFrequency: number;
+	lastWatered: string | null;
 }
 
 export interface DashboardResponse {
-  location: string;
-  plants: Plant[];
+	location: string;
+	plants: Plant[];
 }
