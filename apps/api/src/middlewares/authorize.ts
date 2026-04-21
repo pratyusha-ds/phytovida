@@ -16,5 +16,6 @@ export async function authorize(
 		return;
 	}
 
+	req.userId = auth.userId;
 	next();
 }
