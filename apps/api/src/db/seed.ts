@@ -40,7 +40,7 @@ async function main() {
 		{ id: "spider", name: "Spider Plant", minTemp: 10, maxTemp: 30 },
 	];
 
-	await db.insert(plants).values(plantData);
+	await db.insert(plants).values(plantData).returning();
 
 	console.log("✅ Plants seeded");
 
@@ -56,19 +56,18 @@ async function main() {
 		})),
 	);
 
-	await db.insert(usersPlants).values(userPlantsData);
+	const data = await db.insert(usersPlants).values(userPlantsData).returning();
 
 	console.log("✅ User plants seeded");
 
 	// -----------------------------
 	// 4. WATERING LOGS
 	// -----------------------------
-	const logs = userPlantsData.flatMap((entry) =>
+	const logs = data.flatMap((entry) =>
 		Array.from({ length: 3 }).map(() => ({
 			userId: entry.userId,
-			plantId: entry.plantId,
+			userPlantId: entry.id,
 			wateredAt: faker.date.recent({ days: 30 }),
-			updatedAt: new Date(),
 		})),
 	);
 
