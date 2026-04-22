@@ -3,6 +3,6 @@ import { getPlantsData } from "../controllers/plantlibrary.js";
 
 const router: Router = Router();
 
-router.get("/plants", getPlantsData);
+router.get("/", getPlantsData);
 
 export default router;

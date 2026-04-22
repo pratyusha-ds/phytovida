@@ -2,6 +2,7 @@ import "dotenv/config"; // Load environment variables from .env file
 import express from "express";
 import cors from "cors";
 import dashboardRoutes from "./routes/dashboard.js";
+import plantRoutes from "./routes/plantlibrary.js";
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -10,6 +11,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/plants", plantRoutes);
 
 // Health check endpoint
 app.get("/health", (req, res) => {
