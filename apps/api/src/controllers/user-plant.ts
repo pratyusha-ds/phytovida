@@ -5,14 +5,14 @@ import { and, eq } from "drizzle-orm";
 
 export const readUserPlantsController = async (req: Request, res: Response) => {
 	try {
-		const userId = req.userId!;
+		// const userId = req.userId!; // TODO: uncomment later
 
-		if (!userId) {
-			return res.status(401).json({
-				error: true,
-				message: "Unauthorized: Missing user authentication.",
-			});
-		}
+		// if (!userId) {
+		// 	return res.status(401).json({
+		// 		error: true,
+		// 		message: "Unauthorized: Missing user authentication.",
+		// 	});
+		// }
 
 		// pagination
 		const page = Number(req.query.page ?? 1);

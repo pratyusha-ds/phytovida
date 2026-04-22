@@ -14,7 +14,7 @@ export function UserPlantCard({
 	const navigate = useNavigate();
 	return (
 		<div
-			onClick={() => navigate(`/my-plants/${id}`)}
+			onClick={() => navigate(`/my-garden/${id}`)}
 			className="rounded-lg border group overflow-hidden relative   md:w-[90%] w-[90dvw] h-99.5  shadow-sm ">
 			<img
 				className="absolute  h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"

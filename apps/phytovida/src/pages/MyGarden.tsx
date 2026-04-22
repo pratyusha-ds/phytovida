@@ -1,6 +1,7 @@
 import { ErrorUI } from "@/components/ErrorUI";
 import MyPlantsLists from "@/components/MyPlantsLists";
 import { UserPlantCardSkeleton } from "@/components/UserPlantCard";
+import { WorkInProgress } from "@/components/WorkInProgress";
 
 import type { PaginationResponse, UserPlant } from "@repo/types";
 import { Button } from "@repo/ui/components/button";
@@ -14,11 +15,11 @@ export default function MyGarden() {
 	const [plants, setPlants] = useState<UserPlant[]>([]);
 	const [totalPlants, setTotalPlants] = useState(0);
 	const [error, setError] = useState("");
-	const [page, setPage] = useState(1);
+	const pageRef = useRef(1);
 	const [hasNextPage, setHasNextPage] = useState(true);
 
 	const observerRef = useRef<HTMLDivElement | null>(null);
-	const limit = 1;
+	const limit = 10;
 
 	const fetchPlants = useCallback(async () => {
 		if (loading || !hasNextPage) return;
@@ -28,7 +29,7 @@ export default function MyGarden() {
 			setError("");
 
 			const res = await fetch(
-				`${import.meta.env.VITE_API_URL}/my-plants?page=${page}&limit=${limit}`,
+				`${import.meta.env.VITE_API_URL}/my-plants?page=${pageRef.current}&limit=${limit}`,
 			);
 
 			if (!res.ok) {
@@ -39,17 +40,25 @@ export default function MyGarden() {
 			await new Promise((resolve) => setTimeout(resolve, 2000));
 			const data: PaginationResponse<UserPlant> = await res.json();
 
-			setPlants((prev) => [...prev, ...data.data]);
+			setPlants((prev) => {
+				// safety guard against duplicates
+				const existingIds = new Set(prev.map((p) => p.id));
+				const filtered = data.data.filter((p) => !existingIds.has(p.id));
+
+				return [...prev, ...filtered];
+			});
+
 			setHasNextPage(data.pagination.hasNextPage);
 			setTotalPlants(data.pagination.total);
-			setPage((prev) => prev + 1);
+
+			pageRef.current += 1;
 		} catch (err) {
 			setError((err as Error).message);
 		} finally {
 			setLoading(false);
 			setInitialLoading(false);
 		}
-	}, [page, loading, hasNextPage]);
+	}, [loading, hasNextPage]);
 
 	// initial load
 	useEffect(() => {
@@ -104,34 +113,50 @@ export default function MyGarden() {
 			<div className="flex flex-col items-center space-y-2 md:space-y-5">
 				<h1 className="md:text-8xl">My Garden</h1>
 				<h4 className="text-accent6 text-3xl text-center">
-					{!totalPlants ? (
-						"Start tracking your plants"
-					) : (
+					{isShowPlanningPlants ? (
 						<>
-							<span>
-								Monitoring {loading ? 0 : plants.length}{" "}
-								<br className="block md:hidden" /> plants in your <br /> garden
-							</span>
+							{!totalPlants ? (
+								"Start tracking your plants"
+							) : (
+								<>
+									<span>
+										Monitoring {loading ? 0 : plants.length}{" "}
+										<br className="block md:hidden" /> plants in your <br />{" "}
+										garden
+									</span>
+								</>
+							)}
 						</>
+					) : (
+						"Start your planting plan"
 					)}
 				</h4>
+				{isShowPlanningPlants ? (
+					<>
+						{/*  //TODO: Add Panel for planning to plant and growing plants, show only the active category (growing/planning) */}
+						<MyPlantsLists loading={initialLoading} plants={plants} />
 
-				{/*  //TODO: Add Panel for planning to plant and growing plants, show only the active category (growing/planning) */}
-				<MyPlantsLists loading={initialLoading} plants={plants} />
+						{/*   Sentinel for infinite scroll */}
+						<div ref={observerRef} className="h-10 w-full" />
 
-				{/*   Sentinel for infinite scroll */}
-				<div ref={observerRef} className="h-10 w-full" />
+						{/* Loading indicator */}
+						{loading && (
+							<div className="w-full -mt-20 flex justify-center mb-20">
+								<UserPlantCardSkeleton />
+							</div>
+						)}
 
-				{/* Loading indicator */}
-				{loading && (
-					<div className="w-full -mt-20 flex justify-center mb-20">
-						<UserPlantCardSkeleton />
-					</div>
-				)}
-
-				{/* End state */}
-				{!hasNextPage && plants.length > 0 && (
-					<p className="text-sm text-gray-400 mb-20">No more plants to load</p>
+						{/* End state */}
+						{!hasNextPage && plants.length > 0 && (
+							<p className="text-sm text-gray-400 mb-20">
+								No more plants to load
+							</p>
+						)}
+					</>
+				) : (
+					<>
+						<WorkInProgress />
+					</>
 				)}
 			</div>
 		</section>
