@@ -6,6 +6,7 @@ import CommonLayout from './layouts/common-layout';
 import SignInPage from './pages/auth/SignIn';
 import SignUpPage from './pages/auth/SignUp';
 import AuthLayout from './layouts/auth-layout';
+import AskAi from './pages/AskAi';
 
 export default function AppRoutes() {
   return (
@@ -38,6 +39,10 @@ export default function AppRoutes() {
         <Route
           path='dashboard'
           element={<Dashboard />}
+        />
+         <Route
+          path='ask-ai'
+          element={<AskAi />}
         />
         <Route
           path='test'
