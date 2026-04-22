@@ -21,7 +21,9 @@
     "drizzle-orm": "^0.45.2",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
-    "pg": "^8.20.0"
+    "neverthrow": "^8.2.0",
+    "pg": "^8.20.0",
+    "svix": "^1.91.1"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
