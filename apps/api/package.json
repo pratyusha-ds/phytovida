@@ -1,41 +1,46 @@
 {
-  "name": "api",
-  "version": "1.0.0",
-  "type": "module",
-  "scripts": {
-    "start": "node dist/index.cjs",
-    "dev": "tsdown --watch --onSuccess \"node dist/index.cjs\"",
-    "test": "echo 'No tests yet'",
-    "build": "tsdown",
-    "lint": "eslint . --max-warnings 0",
-    "check-types": "tsc --noEmit"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "dependencies": {
-    "@repo/types": "workspace:^",
-    "body-parser": "^2.2.2",
-    "cors": "^2.8.6",
-    "dotenv": "^17.4.1",
-    "drizzle-orm": "^0.45.2",
-    "express": "^5.2.1",
-    "jsonwebtoken": "^9.0.3",
-    "pg": "^8.20.0"
-  },
-  "devDependencies": {
-    "@repo/eslint-config": "workspace:*",
-    "@repo/typescript-config": "workspace:*",
-    "@types/body-parser": "^1.19.6",
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.6",
-    "@types/node": "^25.5.2",
-    "@types/pg": "^8.20.0",
-    "drizzle-kit": "^0.31.10",
-    "eslint": "^10.2.0",
-    "globals": "^17.4.0",
-    "jiti": "^2.6.1",
-    "tsdown": "^0.21.7",
-    "typescript": "^5.9.2"
-  }
+	"name": "api",
+	"version": "1.0.0",
+	"type": "module",
+	"scripts": {
+		"start": "node dist/index.cjs",
+		"dev": "tsdown --watch --onSuccess \"node dist/index.cjs\"",
+		"test": "echo 'No tests yet'",
+		"build": "tsdown",
+		"lint": "eslint . --max-warnings 0",
+		"check-types": "tsc --noEmit",
+		"db:seed": "pnpm exec drizzle-kit push && tsdown src/db/seed.ts && node dist/seed.cjs",
+		"db:reset": "tsdown src/db/reset.ts && node dist/reset.cjs"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"@clerk/express": "^2.1.5",
+		"@faker-js/faker": "^10.4.0",
+		"@repo/types": "workspace:^",
+		"body-parser": "^2.2.2",
+		"cors": "^2.8.6",
+		"dotenv": "^17.4.1",
+		"drizzle-orm": "^0.45.2",
+		"drizzle-seed": "^0.3.1",
+		"express": "^5.2.1",
+		"jsonwebtoken": "^9.0.3",
+		"pg": "^8.20.0"
+	},
+	"devDependencies": {
+		"@repo/eslint-config": "workspace:*",
+		"@repo/typescript-config": "workspace:*",
+		"@types/body-parser": "^1.19.6",
+		"@types/cors": "^2.8.19",
+		"@types/express": "^5.0.6",
+		"@types/node": "^25.5.2",
+		"@types/pg": "^8.20.0",
+		"drizzle-kit": "^0.31.10",
+		"eslint": "^10.2.0",
+		"globals": "^17.4.0",
+		"jiti": "^2.6.1",
+		"tsdown": "^0.21.7",
+		"typescript": "^5.9.2"
+	}
 }

@@ -20,3 +20,11 @@ export const usersPlants = pgTable("users_plants", {
   wateringFrequency: integer("watering_frequency").default(7),
   lastWateredDate: timestamp("last_watered_date").defaultNow(),
 });
+
+export const plantWateringLogs = pgTable("plant_watering_logs", {
+	id: serial("id").primaryKey(),
+	userId: text("user_id").notNull(), //Clerk ID
+	plantId: text("plant_id").references(() => plants.id),
+	wateredAt: timestamp("watered_at").defaultNow(),
+	updatedAt: timestamp("updated_at").$onUpdateFn(() => new Date()),
+});
