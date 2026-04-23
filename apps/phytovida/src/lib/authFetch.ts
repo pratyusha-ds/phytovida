@@ -1,7 +1,7 @@
 import { useAuth } from "@clerk/clerk-react";
 
 export const useAuthFetch = () => {
-	const { getToken } = useAuth();
+	const { getToken, isLoaded } = useAuth();
 
 	const authFetch = async (url: string, options?: RequestInit) => {
 		const token = await getToken();

@@ -11,12 +11,12 @@ import { authGuard } from "../middlewares/authGuard.js";
 
 const router: Router = Router();
 
-router.use("/auth", authRoutes)
+router.use("/auth", authRoutes);
 
 router.use("/dashboard", dashboardRoutes);
 
 // user plants
 router.use("/my-plants", /* authGuard */ userPlantRoutes); // TODO: uncomment authGuard middleware IF user have plants data
-router.use("/my-plants/:plantId/logs", authGuard, logRoutes);
+router.use("/my-plants/:plantId/logs", /* authGuard */ logRoutes); // TODO: uncomment authGuard middleware IF user have plants data
 
 export default router;

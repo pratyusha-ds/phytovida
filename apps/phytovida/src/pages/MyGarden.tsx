@@ -3,7 +3,7 @@ import MyPlantsLists from "@/components/MyPlantsLists";
 import { UserPlantCardSkeleton } from "@/components/UserPlantCard";
 import { WorkInProgress } from "@/components/WorkInProgress";
 
-import type { PaginationResponse, UserPlant } from "@repo/types";
+import type { ApiPaginatedResponse, UserPlant } from "@repo/types";
 import { Button } from "@repo/ui/components/button";
 import { cn } from "@repo/ui/lib/utils";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -38,7 +38,7 @@ export default function MyGarden() {
 			}
 
 			await new Promise((resolve) => setTimeout(resolve, 2000));
-			const data: PaginationResponse<UserPlant> = await res.json();
+			const data: ApiPaginatedResponse<UserPlant> = await res.json();
 
 			setPlants((prev) => {
 				// safety guard against duplicates
