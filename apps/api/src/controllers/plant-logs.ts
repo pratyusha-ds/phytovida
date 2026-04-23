@@ -4,7 +4,7 @@ import { plants, plantWateringLogs, usersPlants } from "../db/schema.js";
 import { and, desc, eq, gte, lte } from "drizzle-orm";
 
 type Params = {
-	plantId: string;
+	plantId: number;
 	logId: number;
 };
 
@@ -16,10 +16,10 @@ export const plantLogController = async (
 		const { logId, plantId } = req.params;
 		const userId = req.userId!;
 
-		if (!plantId) {
+		if (!plantId || isNaN(Number(plantId))) {
 			return res.status(400).json({
 				error: true,
-				message: "Plant ID is required!",
+				message: "Plant ID is invalid or missing",
 			});
 		}
 
@@ -33,22 +33,19 @@ export const plantLogController = async (
 		const data = await db
 			.select({
 				id: plantWateringLogs.id,
-				plantId: plantWateringLogs.plantId,
+				userPlantId: plantWateringLogs.userPlantId,
 				wateredAt: plantWateringLogs.wateredAt,
 				plantName: plants.name,
 				plantImage: plants.imageUrl,
 			})
 			.from(plantWateringLogs)
-			.innerJoin(
-				usersPlants,
-				eq(plantWateringLogs.plantId, usersPlants.plantId),
-			)
+			.innerJoin(usersPlants, eq(plantWateringLogs.userPlantId, usersPlants.id))
 			.innerJoin(plants, eq(usersPlants.plantId, plants.id))
 			.where(
 				and(
 					eq(plantWateringLogs.id, Number(logId)),
 					eq(usersPlants.userId, userId),
-					eq(plantWateringLogs.plantId, plantId),
+					eq(plantWateringLogs.userPlantId, plantId),
 				),
 			)
 			.limit(1);
@@ -75,7 +72,7 @@ export const plantLogsController = async (req: Request, res: Response) => {
 		const page = Number(req.query?.page ?? 1);
 		const limit = Number(req.query?.limit ?? 10);
 		const from = req.query.from as string | undefined;
-		const plantId = req.params.plantId as string;
+		const plantId = req.params.plantId ? Number(req.params.plantId) : undefined;
 		const to = req.query.to as string | undefined;
 
 		if (!req.userId) {
@@ -85,7 +82,7 @@ export const plantLogsController = async (req: Request, res: Response) => {
 			});
 		}
 
-		if (!plantId) {
+		if (!plantId || isNaN(Number(plantId))) {
 			res.status(404).json({
 				error: true,
 				message: "Plant ID is required!",
@@ -96,7 +93,7 @@ export const plantLogsController = async (req: Request, res: Response) => {
 		const offset = (page - 1) * limit;
 
 		const filters = [
-			eq(plantWateringLogs.plantId, plantId),
+			eq(plantWateringLogs.userPlantId, plantId),
 			eq(plantWateringLogs.userId, req.userId),
 		];
 
@@ -111,13 +108,13 @@ export const plantLogsController = async (req: Request, res: Response) => {
 		const data = await db
 			.select({
 				id: plantWateringLogs.id,
-				plantId: plantWateringLogs.plantId,
+				userPlantId: plantWateringLogs.userPlantId,
 				wateredAt: plantWateringLogs.wateredAt,
 				plantName: plants.name,
 				plantImage: plants.imageUrl,
 			})
 			.from(plantWateringLogs)
-			.innerJoin(plants, eq(plantWateringLogs.plantId, plants.id))
+			.innerJoin(plants, eq(plantWateringLogs.userPlantId, plants.id))
 			.where(filters.length ? and(...filters) : undefined)
 			.orderBy(desc(plantWateringLogs.wateredAt))
 			.limit(limit)
@@ -146,7 +143,7 @@ export const createPlantLogController = async (
 ) => {
 	try {
 		const userId = req.userId;
-		const plantId = req.params.plantId;
+		const plantId = req.params.plantId ? Number(req.params.plantId) : undefined;
 
 		if (!userId) {
 			res.status(401).json({
@@ -156,13 +153,19 @@ export const createPlantLogController = async (
 			return;
 		}
 
+		if (!plantId || isNaN(Number(plantId))) {
+			res.status(404).json({
+				error: true,
+				message: "Plant ID is invalid or missing!",
+			});
+			return;
+		}
+
 		// ownership check
 		const ownership = await db
 			.select()
 			.from(usersPlants)
-			.where(
-				and(eq(usersPlants.plantId, plantId), eq(usersPlants.userId, userId)),
-			)
+			.where(and(eq(usersPlants.id, plantId), eq(usersPlants.userId, userId)))
 			.limit(1);
 
 		if (!ownership.length) {
@@ -176,7 +179,7 @@ export const createPlantLogController = async (
 			.insert(plantWateringLogs)
 			.values({
 				userId,
-				plantId,
+				userPlantId: plantId,
 			})
 			.returning();
 
@@ -200,13 +203,25 @@ export const deletePlantLogController = async (
 		const userId = req.userId!;
 		const { plantId, logId } = req.params;
 
+		if (!plantId || isNaN(Number(plantId))) {
+			return res.status(400).json({
+				error: true,
+				message: "Plant ID is invalid or missing",
+			});
+		}
+
+		if (!logId) {
+			return res.status(400).json({
+				error: true,
+				message: "Log ID is required!",
+			});
+		}
+
 		// ownership check
 		const ownership = await db
 			.select()
 			.from(usersPlants)
-			.where(
-				and(eq(usersPlants.plantId, plantId), eq(usersPlants.userId, userId)),
-			)
+			.where(and(eq(usersPlants.id, plantId), eq(usersPlants.userId, userId)))
 			.limit(1);
 
 		if (!ownership.length) {
@@ -222,7 +237,7 @@ export const deletePlantLogController = async (
 			.where(
 				and(
 					eq(plantWateringLogs.id, Number(logId)),
-					eq(plantWateringLogs.plantId, plantId),
+					eq(plantWateringLogs.userPlantId, plantId),
 					eq(plantWateringLogs.userId, userId),
 				),
 			)
@@ -265,9 +280,7 @@ export const updatePlantLogController = async (
 		const ownership = await db
 			.select()
 			.from(usersPlants)
-			.where(
-				and(eq(usersPlants.plantId, plantId), eq(usersPlants.userId, userId)),
-			)
+			.where(and(eq(usersPlants.id, plantId), eq(usersPlants.userId, userId)))
 			.limit(1);
 
 		if (!ownership.length) {
@@ -286,7 +299,7 @@ export const updatePlantLogController = async (
 			.where(
 				and(
 					eq(plantWateringLogs.id, Number(logId)),
-					eq(plantWateringLogs.plantId, plantId),
+					eq(plantWateringLogs.userPlantId, plantId),
 					eq(plantWateringLogs.userId, userId),
 				),
 			)
