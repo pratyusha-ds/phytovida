@@ -2,6 +2,8 @@ import "dotenv/config"; // Load environment variables from .env file
 import express from "express";
 import { clerkMiddleware } from "@clerk/express";
 import cors from "cors";
+import dashboardRoutes from "./routes/dashboard.js";
+import plantRoutes from "./routes/plantlibrary.js";
 import appRoutes from "./routes/index.js";
 
 const app = express();
@@ -10,6 +12,8 @@ const PORT = process.env.PORT || 3001;
 // Middlewares
 app.use(cors());
 
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/plants", plantRoutes);
 app.use("/api/auth/register/clerk", express.raw({ type: "application/json" }));
 
 app.use(express.json());
