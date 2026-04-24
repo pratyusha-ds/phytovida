@@ -5,14 +5,14 @@ import { and, eq } from "drizzle-orm";
 
 export const readUserPlantsController = async (req: Request, res: Response) => {
 	try {
-		// const userId = req.userId!; // TODO: uncomment later
+		const userId = req.userId!;
 
-		// if (!userId) {
-		// 	return res.status(401).json({
-		// 		error: true,
-		// 		message: "Unauthorized: Missing user authentication.",
-		// 	});
-		// }
+		if (!userId) {
+			return res.status(401).json({
+				error: true,
+				message: "Unauthorized: Missing user authentication.",
+			});
+		}
 
 		// pagination
 		const page = Number(req.query.page ?? 1);
@@ -22,8 +22,8 @@ export const readUserPlantsController = async (req: Request, res: Response) => {
 		// total count (for pagination meta)
 		const totalResult = await db
 			.select({ count: usersPlants.id })
-			.from(usersPlants);
-		// .where(eq(usersPlants.userId, userId)); // TODO: uncomment later
+			.from(usersPlants)
+			.where(eq(usersPlants.userId, userId)); // ownership check
 
 		const total = totalResult.length;
 
@@ -41,7 +41,7 @@ export const readUserPlantsController = async (req: Request, res: Response) => {
 			})
 			.from(usersPlants)
 			.leftJoin(plants, eq(usersPlants.plantId, plants.id))
-			// .where(eq(usersPlants.userId, userId)) // TODO: uncomment later
+			.where(eq(usersPlants.userId, userId)) // ownership check
 			.limit(limit)
 			.offset(offset);
 
@@ -66,14 +66,14 @@ export const readUserPlantsController = async (req: Request, res: Response) => {
 export const readUserPlantController = async (req: Request, res: Response) => {
 	try {
 		const userPlantId = req.params.plantId as string;
-		// const userId = req.userId!; // TODO: uncomment later
+		const userId = req.userId!;
 
-		// if (!userId) {
-		// 	return res.status(401).json({
-		// 		error: true,
-		// 		message: "Unauthorized: Missing user authentication.",
-		// 	});
-		// } // TODO: uncomment later
+		if (!userId) {
+			return res.status(401).json({
+				error: true,
+				message: "Unauthorized: Missing user authentication.",
+			});
+		}
 
 		if (!userPlantId || isNaN(Number(userPlantId))) {
 			return res.status(400).json({
@@ -96,9 +96,8 @@ export const readUserPlantController = async (req: Request, res: Response) => {
 			.from(usersPlants)
 			.leftJoin(plants, eq(usersPlants.plantId, plants.id))
 			.where(
-				// ensure it belongs to the user + matches plant
 				and(
-					// eq(usersPlants.userId, userId), // TODO: uncomment later
+					eq(usersPlants.userId, userId), // ownership check
 					eq(usersPlants.id, Number(userPlantId)),
 				),
 			)
