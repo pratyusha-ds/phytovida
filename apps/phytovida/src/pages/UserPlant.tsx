@@ -1,3 +1,4 @@
+import PlantNotFound from "@/components/PlantNotFound";
 import { PlantWateringLogs } from "@/components/PlantWateringLogs";
 import { useUserPlant } from "@/hooks/user-plants/useUserPlant";
 import { Button } from "@repo/ui/components/button";
@@ -10,7 +11,10 @@ export default function UserPlant() {
 	const [logsOpen, setLogsOpen] = useState(false);
 	const { isLoading, data } = useUserPlant(userPlantId!);
 
-	if (isLoading || !data?.data || !userPlantId) return "loading...";
+	// TODO: replace loading UI
+	if (isLoading || !userPlantId) return "loading...";
+
+	if (!data?.data) return <PlantNotFound />;
 
 	const plant = data?.data;
 	return (

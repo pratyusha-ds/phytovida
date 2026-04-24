@@ -38,7 +38,7 @@ export const readPlantLogController = async (
 				and(
 					eq(plantWateringLogs.id, logId),
 					eq(plantWateringLogs.userPlantId, userPlantId),
-					// eq(usersPlants.userId, userId), // TODO: Uncomment this line to enforce ownership of plant logs
+					eq(usersPlants.userId, userId), // ownership
 				),
 			)
 			.limit(1);
@@ -83,7 +83,7 @@ export const readPlantLogsController = async (req: Request, res: Response) => {
 
 		const filters = [
 			eq(plantWateringLogs.userPlantId, userPlantId),
-			// eq(usersPlants.userId, req.userId!), // TODO: Uncomment this line to enforce ownership of plant logs
+			eq(usersPlants.userId, req.userId!), // ownership check
 		];
 
 		if (from) filters.push(gte(plantWateringLogs.wateredAt, new Date(from)));
@@ -141,47 +141,45 @@ export const createPlantLogController = async (
 		const userId = req.userId;
 		const plantId = req.params.plantId ? Number(req.params.plantId) : undefined;
 
-		// TODO: uncomment the following lines to enforce authentication for creating plant logs
-		// if (!userId) {
-		// 	return sendResponse(res, 401, {
-		// 		error: true,
-		// 		message: "Unauthorized: Missing user authentication.",
-		// 		success: false,
-		// 	});
-		// }
-
-		if (!plantId || isNaN(Number(plantId))) {
-			res.status(404).json({
+		if (!userId) {
+			return sendResponse(res, 401, {
 				error: true,
-				message: "Plant ID is invalid or missing!",
+				message: "Unauthorized: Missing user authentication.",
+				success: false,
 			});
-			return;
 		}
 
-		// ownership check
-		// TODO: Uncomment the following lines to enforce ownership check for creating plant logs
-		// const ownership = await db
-		// 	.select()
-		// 	.from(usersPlants)
-		// 	.where(and(
-		// 		eq(usersPlants.id, plantId),
-		// 		eq(usersPlants.userId, userId))
-		// 	)
-		// 	.limit(1);
+		if (!plantId || isNaN(Number(plantId))) {
+			return sendResponse(res, 404, {
+				error: true,
+				success: false,
+				message: "Plant ID is invalid or missing!",
+			});
+		}
 
-		// if (!ownership.length) {
-		// 	return sendResponse(res, 403, {
-		// 		error: true,
-		// 		message: "Forbidden: You do not have access to this plant.",
-		// 		success: false,
-		// 	});
-		// }
+		console.log(plantId, userId);
+
+		// ownership check
+		const ownership = await db
+			.select()
+			.from(usersPlants)
+			.where(and(eq(usersPlants.id, plantId), eq(usersPlants.userId, userId)))
+			.limit(1);
+
+		console.log(ownership);
+
+		if (!ownership.length) {
+			return sendResponse(res, 403, {
+				error: true,
+				message: "Forbidden: You do not have access to this plant.",
+				success: false,
+			});
+		}
 
 		const [log] = await db
 			.insert(plantWateringLogs)
 			.values({
-				userId: "user_IuWcLRNv7o",
-				//  userId,
+				userId,
 				userPlantId: plantId,
 			})
 			.returning();

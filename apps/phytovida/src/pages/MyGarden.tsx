@@ -2,6 +2,7 @@ import { ErrorUI } from "@/components/ErrorUI";
 import MyPlantsLists from "@/components/MyPlantsLists";
 import { UserPlantCardSkeleton } from "@/components/UserPlantCard";
 import { WorkInProgress } from "@/components/WorkInProgress";
+import { useApiClient } from "@/lib/authFetch";
 
 import type { ApiPaginatedResponse, UserPlant } from "@repo/types";
 import { Button } from "@repo/ui/components/button";
@@ -14,6 +15,7 @@ export default function MyGarden() {
 	const [isShowPlanningPlants, setIsShowPlanningPlants] = useState(true);
 	const [plants, setPlants] = useState<UserPlant[]>([]);
 	const [totalPlants, setTotalPlants] = useState(0);
+	const { apiClient } = useApiClient();
 	const [error, setError] = useState("");
 	const pageRef = useRef(1);
 	const [hasNextPage, setHasNextPage] = useState(true);
@@ -28,17 +30,11 @@ export default function MyGarden() {
 			setLoading(true);
 			setError("");
 
-			const res = await fetch(
-				`${import.meta.env.VITE_API_URL}/my-plants?page=${pageRef.current}&limit=${limit}`,
+			const data: ApiPaginatedResponse<UserPlant> = await apiClient.get(
+				`/my-plants?page=${pageRef.current}&limit=${limit}`,
 			);
 
-			if (!res.ok) {
-				const data = await res.json();
-				throw new Error(data.message || "Failed to fetch plants");
-			}
-
 			await new Promise((resolve) => setTimeout(resolve, 2000));
-			const data: ApiPaginatedResponse<UserPlant> = await res.json();
 
 			setPlants((prev) => {
 				// safety guard against duplicates
@@ -132,27 +128,37 @@ export default function MyGarden() {
 					)}
 				</h4>
 				{isShowPlanningPlants ? (
-					<>
-						{/*  //TODO: Add Panel for planning to plant and growing plants, show only the active category (growing/planning) */}
-						<MyPlantsLists loading={initialLoading} plants={plants} />
+					!initialLoading && plants.length === 0 ? (
+						<>
+							<Button
+								onClick={() => window.alert("Coming soon!")}
+								className="bg-accent3 rounded-full mt-5 hover:bg-accent3/90">
+								Add Plant
+							</Button>
+						</>
+					) : (
+						<>
+							{/*  //TODO: Add Panel for planning to plant and growing plants, show only the active category (growing/planning) */}
+							<MyPlantsLists loading={initialLoading} plants={plants} />
 
-						{/*   Sentinel for infinite scroll */}
-						<div ref={observerRef} className="h-10 w-full" />
+							{/*   Sentinel for infinite scroll */}
+							<div ref={observerRef} className="h-10 w-full" />
 
-						{/* Loading indicator */}
-						{loading && (
-							<div className="w-full -mt-20 flex justify-center mb-20">
-								<UserPlantCardSkeleton />
-							</div>
-						)}
+							{/* Loading indicator */}
+							{loading && (
+								<div className="w-full -mt-20 flex justify-center mb-20">
+									<UserPlantCardSkeleton />
+								</div>
+							)}
 
-						{/* End state */}
-						{!hasNextPage && plants.length > 0 && (
-							<p className="text-sm text-gray-400 mb-20">
-								No more plants to load
-							</p>
-						)}
-					</>
+							{/* End state */}
+							{!hasNextPage && plants.length > 0 && (
+								<p className="text-sm text-gray-400 mb-20">
+									No more plants to load
+								</p>
+							)}
+						</>
+					)
 				) : (
 					<>
 						<WorkInProgress />
