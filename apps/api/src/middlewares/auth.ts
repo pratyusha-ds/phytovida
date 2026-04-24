@@ -20,15 +20,15 @@ export const checkWebhookSecret = (req: Request, res: Response, next: NextFuncti
 
     const wh = new Webhook(WEBHOOK_SECRET);
 
-    try {
-        const event = wh.verify(payload, {
-            "svix-id": String(svixId),
-            "svix-timestamp": String(svixTimestamp),
-            "svix-signature": String(svixSignature),
-        });
-        req.body = event;
-        next();
-    } catch (err) {
-        return res.status(401).json({ error: `Invalid signature! ${err}` });
-    }
+	try {
+		const event = wh.verify(JSON.stringify(payload), {
+			"svix-id": String(svixId),
+			"svix-timestamp": String(svixTimestamp),
+			"svix-signature": String(svixSignature),
+		});
+		req.body = event;
+		next();
+	} catch (err) {
+		return res.status(401).json({ error: `Invalid signature! ${err}` });
+	}
 }
