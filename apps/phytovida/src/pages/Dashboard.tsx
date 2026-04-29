@@ -15,7 +15,11 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!user) return;
-    fetch(`http://localhost:3000/api/dashboard/${user.id}`)
+
+    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+    const finalUrl = `${baseUrl}/dashboard/${user.id}`;
+
+    fetch(finalUrl)
       .then((res) => res.json())
       .then((resData) => {
         setData(resData);
@@ -46,7 +50,7 @@ export default function Dashboard() {
         <LocationCard location={data?.location ?? "London, UK"} />
 
         <div className="flex-1 flex flex-col items-start bg-accent1 rounded-xl p-8 gap-6">
-          <WeatherCard />
+          <WeatherCard location={data?.location ?? "London, UK"}/>
         </div>
       </div>
 

@@ -3,338 +3,362 @@ import { db } from "../db/index.js";
 import { plantWateringLogs, usersPlants } from "../db/schema.js";
 import { and, desc, eq, gte, lte } from "drizzle-orm";
 import { sendResponse } from "../helper/response.js";
+import { count } from "drizzle-orm";
 
 type Params = {
-	plantId: number;
-	logId: number;
+  plantId: number;
+  logId: number;
 };
 
 export const readPlantLogController = async (
-	req: Request<{ plantId: string; logId: string }>,
-	res: Response,
+  req: Request<{ plantId: string; logId: string }>,
+  res: Response,
 ) => {
-	try {
-		const userId = req.userId!;
-		const userPlantId = Number(req.params.plantId);
-		const logId = Number(req.params.logId);
+  try {
+    const userId = req.userId!;
+    const userPlantId = Number(req.params.plantId);
+    const logId = Number(req.params.logId);
 
-		if (isNaN(userPlantId) && isNaN(logId)) {
-			return sendResponse(res, 400, {
-				error: true,
-				message: "Invalid params",
-				success: false,
-			});
-		}
+    if (isNaN(userPlantId) || isNaN(logId)) {
+      return sendResponse(res, 400, {
+        error: true,
+        message: "Invalid parameters provided",
+        success: false,
+      });
+    }
 
-		const data = await db
-			.select({
-				id: plantWateringLogs.id,
-				userPlantId: plantWateringLogs.userPlantId,
-				wateredAt: plantWateringLogs.wateredAt,
-			})
-			.from(plantWateringLogs)
-			.innerJoin(usersPlants, eq(plantWateringLogs.userPlantId, usersPlants.id))
-			.where(
-				and(
-					eq(plantWateringLogs.id, logId),
-					eq(plantWateringLogs.userPlantId, userPlantId),
-					eq(usersPlants.userId, userId), // ownership
-				),
-			)
-			.limit(1);
+    const data = await db
+      .select({
+        id: plantWateringLogs.id,
+        userPlantId: plantWateringLogs.userPlantId,
+        wateredAt: plantWateringLogs.wateredAt,
+      })
+      .from(plantWateringLogs)
+      .innerJoin(usersPlants, eq(plantWateringLogs.userPlantId, usersPlants.id))
+      .where(
+        and(
+          eq(plantWateringLogs.id, logId),
+          eq(plantWateringLogs.userPlantId, userPlantId),
+          eq(usersPlants.userId, userId),
+        ),
+      )
+      .limit(1);
 
-		if (!data.length) {
-			return sendResponse(res, 404, {
-				error: true,
-				message: "Plant log not found",
-				success: false,
-			});
-		}
+    if (!data.length) {
+      return sendResponse(res, 404, {
+        error: true,
+        message: "Plant log not found",
+        success: false,
+      });
+    }
 
-		sendResponse(res, 200, {
-			data: data[0],
-			message: "Plant log fetched successfully.",
-			success: true,
-		});
-	} catch (error) {
-		console.log(error);
-		return res.status(500).json({ error: "Failed to fetch plant log" });
-	}
+    sendResponse(res, 200, {
+      data: data[0],
+      message: "Plant log fetched successfully.",
+      success: true,
+    });
+  } catch {
+    return res.status(500).json({ error: "Failed to fetch plant log" });
+  }
 };
 
 export const readPlantLogsController = async (req: Request, res: Response) => {
-	try {
-		const page = Math.max(1, Number(req.query.page) || 1);
-		const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 10));
-		const from = req.query.from as string | undefined;
-		const to = req.query.to as string | undefined;
+  try {
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 10));
+    const from = req.query.from as string | undefined;
+    const to = req.query.to as string | undefined;
 
-		const userPlantId = Number(req.params.plantId);
+    const userPlantId = Number(req.params.plantId);
 
-		if (isNaN(userPlantId)) {
-			return sendResponse(res, 400, {
-				error: true,
-				message: "Invalid userPlantId",
-				success: false,
-			});
-		}
+    if (isNaN(userPlantId)) {
+      return sendResponse(res, 400, {
+        error: true,
+        message: "Invalid userPlantId",
+        success: false,
+      });
+    }
 
-		const offset = (page - 1) * limit;
+    const offset = (page - 1) * limit;
 
-		const filters = [
-			eq(plantWateringLogs.userPlantId, userPlantId),
-			eq(usersPlants.userId, req.userId!), // ownership check
-		];
+    const filters = [
+      eq(plantWateringLogs.userPlantId, userPlantId),
+      eq(usersPlants.userId, req.userId!),
+    ];
 
-		if (from) filters.push(gte(plantWateringLogs.wateredAt, new Date(from)));
-		if (to) filters.push(lte(plantWateringLogs.wateredAt, new Date(to)));
+    if (from) filters.push(gte(plantWateringLogs.wateredAt, new Date(from)));
+    if (to) filters.push(lte(plantWateringLogs.wateredAt, new Date(to)));
 
-		const data = await db
-			.select({
-				id: plantWateringLogs.id,
-				userPlantId: plantWateringLogs.userPlantId,
-				wateredAt: plantWateringLogs.wateredAt,
-			})
-			.from(plantWateringLogs)
-			.innerJoin(usersPlants, eq(plantWateringLogs.userPlantId, usersPlants.id))
-			.where(and(...filters))
-			.orderBy(desc(plantWateringLogs.wateredAt))
-			.limit(limit)
-			.offset(offset);
+    const data = await db
+      .select({
+        id: plantWateringLogs.id,
+        userPlantId: plantWateringLogs.userPlantId,
+        wateredAt: plantWateringLogs.wateredAt,
+      })
+      .from(plantWateringLogs)
+      .innerJoin(usersPlants, eq(plantWateringLogs.userPlantId, usersPlants.id))
+      .where(and(...filters))
+      .orderBy(desc(plantWateringLogs.wateredAt))
+      .limit(limit)
+      .offset(offset);
 
-		const totalResult = await db
-			.select({ count: plantWateringLogs.id })
-			.from(plantWateringLogs)
-			.innerJoin(usersPlants, eq(plantWateringLogs.userPlantId, usersPlants.id))
-			.where(and(...filters));
+    const [totalResult] = await db
+      .select({ value: count() })
+      .from(plantWateringLogs)
+      .innerJoin(usersPlants, eq(plantWateringLogs.userPlantId, usersPlants.id))
+      .where(and(...filters));
 
-		const total = totalResult.length;
+    const total = Number(totalResult?.value || 0);
 
-		return sendResponse(res, 200, {
-			data,
-			pagination: {
-				page,
-				limit,
-				total,
-				totalPages: Math.ceil(total / limit),
-				hasNextPage: page * limit < total,
-			},
-			message: "Plant logs fetched successfully.",
-			success: true,
-		});
-	} catch (error) {
-		console.log(error);
-
-		sendResponse(res, 500, {
-			error: true,
-			message: "Failed to fetch plant logs",
-			success: false,
-		});
-	}
+    return sendResponse(res, 200, {
+      data,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasNextPage: page * limit < total,
+      },
+      message: "Plant logs fetched successfully.",
+      success: true,
+    });
+  } catch {
+    sendResponse(res, 500, {
+      error: true,
+      message: "Failed to fetch plant logs",
+      success: false,
+    });
+  }
 };
 
 export const createPlantLogController = async (
-	req: Request<Pick<Params, "plantId">>,
-	res: Response,
+  req: Request<Pick<Params, "plantId">>,
+  res: Response,
 ) => {
-	try {
-		const userId = req.userId;
-		const plantId = req.params.plantId ? Number(req.params.plantId) : undefined;
+  try {
+    const userId = req.userId;
+    const plantId = req.params.plantId ? Number(req.params.plantId) : undefined;
 
-		if (!userId) {
-			return sendResponse(res, 401, {
-				error: true,
-				message: "Unauthorized: Missing user authentication.",
-				success: false,
-			});
-		}
+    if (!userId) {
+      return sendResponse(res, 401, {
+        error: true,
+        message: "Unauthorized: Missing user authentication.",
+        success: false,
+      });
+    }
 
-		if (!plantId || isNaN(Number(plantId))) {
-			return sendResponse(res, 404, {
-				error: true,
-				success: false,
-				message: "Plant ID is invalid or missing!",
-			});
-		}
+    if (!plantId || isNaN(plantId)) {
+      return sendResponse(res, 400, {
+        error: true,
+        success: false,
+        message: "Plant ID is invalid or missing!",
+      });
+    }
 
-		console.log(plantId, userId);
+    const ownership = await db
+      .select()
+      .from(usersPlants)
+      .where(and(eq(usersPlants.id, plantId), eq(usersPlants.userId, userId)))
+      .limit(1);
 
-		// ownership check
-		const ownership = await db
-			.select()
-			.from(usersPlants)
-			.where(and(eq(usersPlants.id, plantId), eq(usersPlants.userId, userId)))
-			.limit(1);
+    if (!ownership.length) {
+      return sendResponse(res, 403, {
+        error: true,
+        message: "Forbidden: You do not have access to this plant.",
+        success: false,
+      });
+    }
 
-		console.log(ownership);
+    const [log] = await db
+      .insert(plantWateringLogs)
+      .values({
+        userId,
+        userPlantId: plantId,
+      })
+      .returning();
 
-		if (!ownership.length) {
-			return sendResponse(res, 403, {
-				error: true,
-				message: "Forbidden: You do not have access to this plant.",
-				success: false,
-			});
-		}
-
-		const [log] = await db
-			.insert(plantWateringLogs)
-			.values({
-				userId,
-				userPlantId: plantId,
-			})
-			.returning();
-
-		sendResponse(res, 201, {
-			data: log,
-			message: "Plant log created successfully.",
-			success: true,
-		});
-	} catch (error) {
-		console.log(error);
-		sendResponse(res, 500, {
-			error: true,
-			message: "Failed to create plant log",
-			success: false,
-		});
-	}
+    sendResponse(res, 201, {
+      data: log,
+      message: "Plant log created successfully.",
+      success: true,
+    });
+  } catch {
+    sendResponse(res, 500, {
+      error: true,
+      message: "Failed to create plant log",
+      success: false,
+    });
+  }
 };
 
 export const deletePlantLogController = async (
-	req: Request<Pick<Params, "plantId" | "logId">>,
-	res: Response,
+  req: Request<Pick<Params, "plantId" | "logId">>,
+  res: Response,
 ) => {
-	try {
-		const userId = req.userId!;
-		const { plantId, logId } = req.params;
+  try {
+    const userId = req.userId!;
+    const { plantId, logId } = req.params;
 
-		if (!plantId || isNaN(Number(plantId))) {
-			return sendResponse(res, 400, {
-				error: true,
-				message: "Plant ID is invalid or missing",
-				success: false,
-			});
-		}
+    if (!plantId || isNaN(Number(plantId))) {
+      return sendResponse(res, 400, {
+        error: true,
+        message: "Plant ID is invalid or missing",
+        success: false,
+      });
+    }
 
-		if (!logId) {
-			return sendResponse(res, 400, {
-				error: true,
-				message: "Log ID is required",
-				success: false,
-			});
-		}
+    const ownership = await db
+      .select()
+      .from(usersPlants)
+      .where(
+        and(
+          eq(usersPlants.id, Number(plantId)),
+          eq(usersPlants.userId, userId),
+        ),
+      )
+      .limit(1);
 
-		// ownership check
-		const ownership = await db
-			.select()
-			.from(usersPlants)
-			.where(and(eq(usersPlants.id, plantId), eq(usersPlants.userId, userId)))
-			.limit(1);
+    if (!ownership.length) {
+      return sendResponse(res, 403, {
+        error: true,
+        message: "Forbidden: Access denied.",
+        success: false,
+      });
+    }
 
-		if (!ownership.length) {
-			return sendResponse(res, 403, {
-				error: true,
-				message: "Forbidden: You do not have access to this plant.",
-				success: false,
-			});
-		}
+    const deleted = await db
+      .delete(plantWateringLogs)
+      .where(
+        and(
+          eq(plantWateringLogs.id, Number(logId)),
+          eq(plantWateringLogs.userPlantId, Number(plantId)),
+          eq(plantWateringLogs.userId, userId),
+        ),
+      )
+      .returning();
 
-		// ensure log belongs to plant + user
-		const deleted = await db
-			.delete(plantWateringLogs)
-			.where(
-				and(
-					eq(plantWateringLogs.id, Number(logId)),
-					eq(plantWateringLogs.userPlantId, plantId),
-					eq(plantWateringLogs.userId, userId),
-				),
-			)
-			.returning();
+    if (!deleted.length) {
+      return sendResponse(res, 404, {
+        error: true,
+        message: "Plant log not found.",
+        success: false,
+      });
+    }
 
-		if (!deleted.length) {
-			return sendResponse(res, 404, {
-				error: true,
-				message: "Plant log not found.",
-				success: false,
-			});
-		}
-
-		sendResponse(res, 200, {
-			message: "Plant log deleted successfully.",
-			data: deleted[0],
-			success: true,
-		});
-	} catch (error) {
-		console.log(error);
-		sendResponse(res, 500, {
-			error: true,
-			message: "Failed to delete plant log",
-			success: false,
-		});
-	}
+    sendResponse(res, 200, {
+      message: "Plant log deleted successfully.",
+      data: deleted[0],
+      success: true,
+    });
+  } catch {
+    sendResponse(res, 500, {
+      error: true,
+      message: "Failed to delete plant log",
+      success: false,
+    });
+  }
 };
 
 type Body = {
-	wateredAt?: string;
+  wateredAt?: string;
 };
 
 export const updatePlantLogController = async (
-	req: Request<Pick<Params, "plantId" | "logId">, {}, Body>,
-	res: Response,
+  req: Request<Pick<Params, "plantId" | "logId">, object, Body>,
+  res: Response,
 ) => {
-	try {
-		const userId = req.userId!;
-		const { plantId, logId } = req.params;
-		const { wateredAt } = req.body;
+  try {
+    const userId = req.userId!;
+    const { plantId, logId } = req.params;
+    const { wateredAt } = req.body;
 
-		// ownership check
-		const ownership = await db
-			.select()
-			.from(usersPlants)
-			.where(and(eq(usersPlants.id, plantId), eq(usersPlants.userId, userId)))
-			.limit(1);
+    const ownership = await db
+      .select()
+      .from(usersPlants)
+      .where(
+        and(
+          eq(usersPlants.id, Number(plantId)),
+          eq(usersPlants.userId, userId),
+        ),
+      )
+      .limit(1);
 
-		if (!ownership.length) {
-			return sendResponse(res, 403, {
-				error: true,
-				message: "Forbidden: You do not have access to this plant.",
-				success: false,
-			});
-		}
+    if (!ownership.length) {
+      return sendResponse(res, 403, {
+        error: true,
+        message: "Forbidden: Access denied.",
+        success: false,
+      });
+    }
 
-		// update log
-		const updated = await db
-			.update(plantWateringLogs)
-			.set({
-				...(wateredAt ? { wateredAt: new Date(wateredAt) } : {}),
-			})
-			.where(
-				and(
-					eq(plantWateringLogs.id, Number(logId)),
-					eq(plantWateringLogs.userPlantId, plantId),
-					eq(plantWateringLogs.userId, userId),
-				),
-			)
-			.returning();
+    const updateData: Record<string, any> = {};
+    if (wateredAt) {
+      updateData.wateredAt = new Date(wateredAt);
+    }
 
-		if (!updated.length) {
-			return sendResponse(res, 404, {
-				error: true,
-				message: "Plant log not found.",
-				success: false,
-			});
-		}
+    const updated = await db
+      .update(plantWateringLogs)
+      .set(updateData)
+      .where(
+        and(
+          eq(plantWateringLogs.id, Number(logId)),
+          eq(plantWateringLogs.userPlantId, Number(plantId)),
+          eq(plantWateringLogs.userId, userId),
+        ),
+      )
+      .returning();
 
-		sendResponse(res, 200, {
-			message: "Plant log updated successfully.",
-			data: updated[0],
-			success: true,
-		});
-	} catch (error) {
-		console.log(error);
-		sendResponse(res, 500, {
-			error: true,
-			message: "Failed to update plant log",
-			success: false,
-		});
-	}
+    if (!updated.length) {
+      return sendResponse(res, 404, {
+        error: true,
+        message: "Plant log not found.",
+        success: false,
+      });
+    }
+
+    sendResponse(res, 200, {
+      message: "Plant log updated successfully.",
+      data: updated[0],
+      success: true,
+    });
+  } catch {
+    sendResponse(res, 500, {
+      error: true,
+      message: "Failed to update plant log",
+      success: false,
+    });
+  }
+};
+
+export const readAllUserLogsController = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const userId = req.userId;
+    if (!userId) {
+      return sendResponse(res, 401, {
+        error: true,
+        message: "Unauthorized",
+        success: false,
+      });
+    }
+    const data = await db
+      .select({
+        id: plantWateringLogs.id,
+        userPlantId: plantWateringLogs.userPlantId,
+        wateredAt: plantWateringLogs.wateredAt,
+      })
+      .from(plantWateringLogs)
+      .where(eq(plantWateringLogs.userId, userId))
+      .orderBy(desc(plantWateringLogs.wateredAt));
+
+    return sendResponse(res, 200, {
+      data,
+      message: "All plant logs fetched.",
+      success: true,
+    });
+  } catch {
+    return res.status(500).json({ error: "Failed to fetch logs" });
+  }
 };

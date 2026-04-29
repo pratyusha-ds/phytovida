@@ -20,3 +20,11 @@ export type ApiPaginatedResponse<T> = {
 };
 
 export type ApiResponse<T> = ApiSuccess<T> | ApiPaginatedResponse<T> | ApiError;
+
+
+export type WeatherData = {
+    temperature: number;
+    humidity: number;
+    rainChance: number;
+    description: string;
+};
