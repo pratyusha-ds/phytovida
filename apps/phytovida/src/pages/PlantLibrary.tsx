@@ -50,9 +50,16 @@ export default function PlantLibrary() {
         fetchData(1);
     }, []);
 
+
     useEffect(() => {
-        fetchData()
-    })
+        const timer = setTimeout(() => {
+            setAllPlants([]);
+            pageRef.current = 1;
+            fetchData(1, searchInput);
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [searchInput]);
 
 
     const handleDiscoverMore = async () => {
@@ -90,25 +97,25 @@ export default function PlantLibrary() {
                     <h4 className="text-accent6 text-2xl text-center max-w-xl">Browse our plant database to find out more about your favourite plants and choose what to grow next.</h4>
                 </div>
                 <div className="flex justify-center gap-3 px-8">
-                    <SearchBar value={searchInput} onChange={setSearchInput}/>
+                    <SearchBar value={searchInput} onChange={setSearchInput} />
                 </div>
 
 
                 {error && <p className="text-red-500 text-center">{error}</p>}
 
-            {allPlants.length > 0 && (
-                <ul className="grid grid-col-1 md:grid-cols-2 gap-4">
-                    {allPlants.map((plant) => (
-                        <li key={plant.id} className="border rounded p-4">
-                            {plant.imageUrl && (
-                                <img src={plant.imageUrl} alt={plant.name} className="w-full rounded mb-2" />
-                            )}
-                            <p className="font-semibold">{plant.name}</p>
-                            <CreateUserPlantForm plantId={plant.id} name={plant.name} />
-                        </li>
-                    ))}
-                </ul>
-            )}
+                {allPlants.length > 0 && (
+                    <ul className="grid grid-col-1 md:grid-cols-2 gap-4">
+                        {allPlants.map((plant) => (
+                            <li key={plant.id} className="border rounded p-4">
+                                {plant.imageUrl && (
+                                    <img src={plant.imageUrl} alt={plant.name} className="w-full rounded mb-2" />
+                                )}
+                                <p className="font-semibold">{plant.name}</p>
+                                <CreateUserPlantForm plantId={plant.id} name={plant.name} />
+                            </li>
+                        ))}
+                    </ul>
+                )}
 
                 {loading && <p className="text-center">Loading plants...</p>}
 
