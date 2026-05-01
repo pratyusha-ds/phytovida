@@ -29,7 +29,7 @@ const FeedbackCard = ({ icon, title, description, actions }: {
                         <div className="flex flex-col md:flex-row gap-2">
                             {actions.map((action, index) => (
                                 <Button
-                                    onClick={() => navigate(action.link)}
+                                    onClick={() => { setOpen(false); navigate(action.link) }}
                                     key={index} variant="secondary" className={`${action.bgColor} hover:${action.bgColor} focus:ring-${action.bgColor} ${action.color} flex-1`}>
                                     {action.text}
                                 </Button>

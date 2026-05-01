@@ -59,11 +59,6 @@ const CreateUserPlantForm = ({ plantId, name }: { plantId: string, name: string 
         })
     };
 
-    // Icon
-    // Title: Planned & Saved | Saved & Growing | Your details need a tweak | We couldn't save your plant
-    // Description: {name} was saved to your planting wishlist. Mark it as planted whenever you're ready | {name} was added to your garden. We’ll send gentle watering reminders so it thrives. | Some details didn't look right. | We couldn't reach the garden service. Please try again in a moment.
-    // Action buttons| Browse other plants | View my garden | Try again
-
     return (
         <>
             <Dialog

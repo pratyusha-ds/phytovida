@@ -2,6 +2,7 @@ import { Button } from "@repo/ui/components/button";
 import { useApiClient } from "@/lib/authFetch";
 import type { ApiPaginatedResponse, DbPlant } from "@repo/types";
 import { useCallback, useEffect, useRef, useState } from "react";
+import CreateUserPlantForm from "@/components/UserPlantCreation/CreateUserPlantForm";
 
 
 export default function PlantLibrary() {
@@ -93,6 +94,7 @@ export default function PlantLibrary() {
                                 <img src={plant.imageUrl} alt={plant.name} className="w-full rounded mb-2" />
                             )}
                             <p className="font-semibold">{plant.name}</p>
+                            <CreateUserPlantForm plantId={plant.id} name={plant.name} />
                         </li>
                     ))}
                 </ul>
