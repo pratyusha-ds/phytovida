@@ -12,7 +12,7 @@ export const readUserPlant = async (
   authFetch: any,
   id: string,
 ): Promise<ReadUserPlantResponse> => {
-  return authFetch(`/plants/${id}`);
+  return authFetch(`/my-plants/${id}`);
 };
 
 export const createUserPlant = async (

@@ -13,7 +13,8 @@ export function TaskList() {
 
     useEffect(() => {
         if (!user) return;
-        fetch(`http://localhost:3001/api/dashboard/${user.id}`)
+        const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+        fetch(`${baseUrl}/dashboard/${user.id}`)
             .then((res) => res.json())
             .then((resData) => {
                 setData(resData);
