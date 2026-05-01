@@ -1,13 +1,13 @@
 import type { Request, Response, NextFunction } from "express";
-
+import type { UserPlantUpdate } from "../../types/user-plant.js";
 export const validateUserPlantInput = (req: Request, res: Response, next: NextFunction) => {
     const data = req.body;
     if (!data) {
         return res.status(400).json({ error: "Missing request body" });
     }
-    console.log("In verification clerkMiddleware...")
-    console.log(req.body, typeof req.body);
+
     const { plantId, phase, wateringFrequency, lastWateredDate } = data;
+
     if (!plantId || typeof plantId !== "string") {
         return res.status(400).json({ error: "Missing or invalid plantId" });
     }
@@ -29,4 +29,42 @@ export const validateUserPlantInput = (req: Request, res: Response, next: NextFu
     }
 
     next();
+}
+
+export const validateUserPlantUpdateInput = (req: Request, res: Response, next: NextFunction) => {
+    const { fields } = req.body;
+
+    if (!fields || fields.length === 0) {
+        return res.status(204).json({ message: "No fields to update" });
+    }
+
+    for (let index = 0; index < fields.length; index++) {
+        const field = fields[index];
+        console.log(field)
+        if (field.name === undefined || field.value === undefined) {
+            console.log("ERROR")
+            return res.status(400).json({ error: true, message: "Wrong format" })
+        }
+
+        switch (field.name) {
+            case "wateringFrequency": {
+                if (!!field.value) {
+                    if (isNaN(Number(field.value))) {
+                        return res.status(400).json({ error: true, message: "Watering Frequency must be null or a valid pozitive number" })
+                    }
+                    req.body.fields[index]["value"] = Number(field.value);
+                }
+                break;
+            }
+            case "phase": {
+                if (field.value !== "growing") {
+                    return res.status(400).json({ error: true, message: "Phase can be updated only to growing." })
+                }
+                break;
+            }
+            default: return res.status(400).json({ error: true, message: `${field.name} Invalid field` })
+        }
+    };
+
+    return next();
 }

@@ -1,8 +1,12 @@
 import { eq } from "drizzle-orm";
-import { UserPlantCreation } from "../../types/user-plant.js";
+import { UserPlantCreation, UserPlantUpdate } from "../../types/user-plant.js";
 import { db } from "../db/index.js";
 import { userSettings, usersPlants, plants } from "../db/schema.js";
 import { errAsync, okAsync } from "neverthrow";
+
+type Field =
+    | { name: "phase"; value: string }
+    | { name: "wateringFrequency"; value: number | null };
 
 export const addUserPlant = async (userPlant: UserPlantCreation) => {
     try {
@@ -32,5 +36,40 @@ export const addUserPlant = async (userPlant: UserPlantCreation) => {
         return okAsync(await db.insert(usersPlants).values(userPlant).returning());
     } catch (error) {
         return errAsync({ reason: "InternalServerError", message: `${error} An error occurred while adding the plant to the user's collection.` });
+    }
+}
+
+export const updateUserPlant = async (userId: string, userPlantId: number, fields: Field[]) => {
+    try {
+
+        // check if user plant id exists and it belongs to the authenticated user
+        const userPlantsFromDb = await db
+            .select()
+            .from(usersPlants)
+            .where(eq(usersPlants.id, userPlantId));
+
+
+        if (userPlantsFromDb.length === 0) {
+            return errAsync({ reason: "UserPlantNotFound", message: `Plant was not found.` })
+        }
+
+        const userPlantFromDb = userPlantsFromDb[0];
+
+        if (userPlantFromDb?.userId !== userId) {
+            return errAsync({ reason: "Unauthorized", message: "User does not have access to this plant" })
+        }
+
+        const objectToUpdate: UserPlantUpdate = {};
+
+        fields.forEach(({ name, value }) => {
+            switch (name) {
+                case "phase": { objectToUpdate.phase = value; break; }
+                case "wateringFrequency": { objectToUpdate.wateringFrequency = value; break; };
+            }
+        })
+        return okAsync(await db.update(usersPlants).set(objectToUpdate));
+
+    } catch (error) {
+        return errAsync({ reason: "InternalServerError", message: `${error} An error occured while updating user's plant` })
     }
 }
