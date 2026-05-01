@@ -14,17 +14,18 @@ export default function PlantLibrary() {
     const [hasNextPage, setHasNextPage] = useState(true);
     const [seeding, setSeeding] = useState(false);
     const [sourceExhausted, setSourceExhausted] = useState(false);
+    const [searchInput, setSearchInput] = useState("");
 
     const observerRef = useRef<HTMLDivElement | null>(null);
     const limit = 10;
 
-    const fetchData = useCallback(async (page: number) => {
+    const fetchData = useCallback(async (page: number, search = "") => {
         try {
             setLoading(true);
             setError("");
 
             const data: ApiPaginatedResponse<DbPlant> = await apiClient.get(
-                `/plants?page=${page}&limit=${limit}`,
+                `/plants?page=${page}&limit=${limit}&search=${search}`,
             );
 
             setAllPlants((prev) => {
@@ -47,6 +48,10 @@ export default function PlantLibrary() {
     useEffect(() => {
         fetchData(1);
     }, []);
+
+    useEffect(() => {
+        fetchData()
+    })
 
 
     const handleDiscoverMore = async () => {
@@ -75,51 +80,53 @@ export default function PlantLibrary() {
 
 
     return (
+        <section className="w-full space-y-10  md:mt-32 ">
+            <div className="h-full grid place-content-center gap-10">
+                <h1 className="flex justify-center text-headline md:text-8xl">
+                    Plant Library
+                </h1>
+                <div className="flex justify-center gap-10 px-8">
+                    <h4 className="text-accent6 text-2xl text-center max-w-xl">Browse our plant database to find out more about your favourite plants and choose what to grow next.</h4>
+                </div>
+                <div className="flex justify-center gap-3 px-8">
+                    <SearchBar value={searchInput} onChange={setSearchInput}/>
+                </div>
 
-        <div className="h-full grid place-content-center gap-6">
-            <h1 className="flex justify-center py-8 text-headline">
-                Plant Library
-            </h1>
-            <div className="flex justify-center gap-3 px-8">
-                <p className="text-center">Browse our plant database to find out more about your favourite plants and choose what to grow next.</p>
-            </div>
-            <div className="flex justify-center gap-3 px-8">
-                <SearchBar />
-            </div>
 
-            {error && <p className="text-red-500 text-center">{error}</p>}
+                {error && <p className="text-red-500 text-center">{error}</p>}
 
-            {allPlants.length > 0 && (
-                <ul className="grid grid-col-1 md:grid-cols-2 gap-4">
-                    {allPlants.map((plant) => (
-                        <li key={plant.id} className="border rounded p-4">
-                            {plant.imageUrl && (
-                                <img src={plant.imageUrl} alt={plant.name} className="w-full rounded mb-2" />
-                            )}
-                            <p className="font-semibold">{plant.name}</p>
-                        </li>
-                    ))}
-                </ul>
-            )}
-
-            {loading && <p className="text-center">Loading plants...</p>}
-
-            <div ref={observerRef} className="h-10 w-full" />
-
-            <div className="flex justify-center gap-3">
-                {!sourceExhausted ? (
-                    <Button className="rounded-full"
-                        variant="secondary"
-                        onClick={handleDiscoverMore}
-                        disabled={loading || seeding}>
-                        {seeding ? "Please wait..." : "Discover more"}
-                    </Button>
-                ) : (
-                    <p> You've discovered all available plants</p>
+                {allPlants.length > 0 && (
+                    <ul className="grid grid-col-1 md:grid-cols-2 gap-4">
+                        {allPlants.map((plant) => (
+                            <li key={plant.id} className="border rounded p-4">
+                                {plant.imageUrl && (
+                                    <img src={plant.imageUrl} alt={plant.name} className="w-full rounded mb-2" />
+                                )}
+                                <p className="font-semibold">{plant.name}</p>
+                            </li>
+                        ))}
+                    </ul>
                 )}
-            </div>
 
-        </div>
+                {loading && <p className="text-center">Loading plants...</p>}
+
+                <div ref={observerRef} className="h-10 w-full" />
+
+                <div className="flex justify-center gap-3">
+                    {!sourceExhausted ? (
+                        <Button className="rounded-full"
+                            variant="secondary"
+                            onClick={handleDiscoverMore}
+                            disabled={loading || seeding}>
+                            {seeding ? "Please wait..." : "Discover more"}
+                        </Button>
+                    ) : (
+                        <p> You've discovered all available plants</p>
+                    )}
+                </div>
+
+            </div>
+        </section>
 
     );
 
