@@ -5,7 +5,6 @@ import { Button } from "@repo/ui/components/button";
 import { useState } from "react";
 import { useParams } from "react-router";
 import { Sprout, Trash2, Droplets, Leaf, CircleArrowRight } from "lucide-react";
-import WateringFrequencyCard from "@/components/UserPlantUpdate/WateringFrequencyCard";
 import WateringFrequencyNotSetCard from "@/components/UserPlantUpdate/WateringFrequencyNotSetCard";
 import WateringFrequencyEdit from "@/components/UserPlantUpdate/WateringFrequencyEdit";
 import AlertCard from "@/components/AlertCard";
