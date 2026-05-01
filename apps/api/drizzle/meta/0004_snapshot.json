@@ -1,6 +1,6 @@
 {
-  "id": "8884de41-5fdd-4e80-9eb4-1ff234025218",
-  "prevId": "9a0c7b07-7857-490d-938f-39d780f3dee0",
+  "id": "1e09b905-4476-4add-b0ce-9e97409ffad6",
+  "prevId": "ad87bc12-9636-4744-9aec-9d506e6358c4",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -105,8 +105,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.push_notifications": {
-      "name": "push_notifications",
+    "public.source_sync": {
+      "name": "source_sync",
       "schema": "",
       "columns": {
         "id": {
@@ -115,141 +115,57 @@
           "primaryKey": true,
           "notNull": true
         },
-        "user_id": {
-          "name": "user_id",
+        "source": {
+          "name": "source",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "plant_id": {
-          "name": "plant_id",
+        "last_fetched_page": {
+          "name": "last_fetched_page",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "total_pages": {
+          "name": "total_pages",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "'idle'"
         },
-        "endpoint": {
-          "name": "endpoint",
-          "type": "text",
+        "last_run_at": {
+          "name": "last_run_at",
+          "type": "timestamp",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
-        "notification_type": {
-          "name": "notification_type",
+        "error_message": {
+          "name": "error_message",
           "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "last_sent_date": {
-          "name": "last_sent_date",
-          "type": "date",
           "primaryKey": false,
           "notNull": false
         }
       },
-      "indexes": {
-        "push_notification_unique_idx": {
-          "name": "push_notification_unique_idx",
-          "columns": [
-            {
-              "expression": "user_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "plant_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "endpoint",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "notification_type",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
+      "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.push_subscriptions": {
-      "name": "push_subscriptions",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "serial",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "endpoint": {
-          "name": "endpoint",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "p256dh": {
-          "name": "p256dh",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "auth": {
-          "name": "auth",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "endpoint_idx": {
-          "name": "endpoint_idx",
+      "uniqueConstraints": {
+        "source_sync_source_unique": {
+          "name": "source_sync_source_unique",
+          "nullsNotDistinct": false,
           "columns": [
-            {
-              "expression": "endpoint",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
+            "source"
+          ]
         }
       },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -302,19 +218,37 @@
           "primaryKey": false,
           "notNull": false
         },
+        "phase": {
+          "name": "phase",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'planning'"
+        },
         "watering_frequency": {
           "name": "watering_frequency",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
-          "default": 7
+          "notNull": false
         },
         "last_watered_date": {
           "name": "last_watered_date",
           "type": "timestamp",
           "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
           "notNull": false,
           "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
