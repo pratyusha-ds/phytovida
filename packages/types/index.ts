@@ -37,6 +37,7 @@ export interface PerenualPlant {
 
 export interface PerenualResponse {
   data: PerenualPlant[];
+  last_page: number;
 }
 
 // Plant DB / API
