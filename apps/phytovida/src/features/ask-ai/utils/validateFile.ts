@@ -1,14 +1,13 @@
-function validateFile(file: File): void {
-  const allowedTypes = ["image/jpeg", "image/png"];
-
-  if (!allowedTypes.includes(file.type)) {
-    throw new Error("Only JPEG and PNG images are supported");
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+const MAX_SIZE_MB = 25
+const MAX_SIZE_BYTES = MAX_SIZE_MB * 1024 * 1024
+ 
+export function validateFile(file: File): void {
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    throw new Error('Only JPEG, PNG or WebP images are supported.')
   }
-
-  const maxSize = 50 * 1024 * 1024; // 50MB
-  if (file.size > maxSize) {
-    throw new Error("Image size must be under 50MB");
+  if (file.size > MAX_SIZE_BYTES) {
+    throw new Error(`Image must be under ${MAX_SIZE_MB} MB.`)
   }
 }
-
 export default validateFile;

@@ -1,32 +1,34 @@
 import type {
   DiagnosisResult,
-  PlantNetResponse,
+  DiseaseMatch,
+  PlantIdResponse,
 } from "../services/analyzePlant.types";
+import { normalizeDescription } from "./Normalizedescription";
 
-function parseResponse(data: PlantNetResponse): DiagnosisResult {
-  
-  if (!data.results || data.results.length === 0) {
-    return {
-      topMatch: null,
-      description: null,
-      confidence: 0,
-      remainingRequests: data.remainingIdentificationRequests,
-      allMatches: [],
-    };
-  }
-
-  const top = data.results[0];
+export function parseResponse(
+  data: PlantIdResponse,
+  remainingFromHeader: number,
+): DiagnosisResult {
+  const diseases = (data.result.disease.suggestions ?? [])
+    .filter((s) => s.probability > 0.05)
+    .slice(0, 5)
+    .map((s): DiseaseMatch => ({
+      name: s.name,
+      commonNames: s.details?.common_names ?? [],
+      confidence: Math.round(s.probability * 100),
+      description: normalizeDescription(s.details?.description),
+      treatment: {
+        prevention: s.details?.treatment?.prevention ?? [],
+        biological: s.details?.treatment?.biological ?? [],
+        chemical: s.details?.treatment?.chemical ?? [],
+      },
+    }))
+ 
   return {
-    topMatch: top.name,
-    description: top.description,
-    confidence: Math.round(top.score * 100),
-    remainingRequests: data.remainingIdentificationRequests,
-    allMatches: data.results.slice(0, 5).map((r) => ({
-      name: r.name,
-      description: r.description,
-      confidence: Math.round(r.score * 100),
-    })),
-  };
+    isHealthy: data.result.is_healthy.binary,
+    healthProbability: Math.round(data.result.is_healthy.probability * 100),
+    diseases,
+    remainingRequests: data.remaining_requests ?? remainingFromHeader,
+  }
 }
-
 export default parseResponse;
