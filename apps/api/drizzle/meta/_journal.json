@@ -43,6 +43,13 @@
       "when": 1777911048184,
       "tag": "0005_giant_nightmare",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1777984394268,
+      "tag": "0006_sturdy_violations",
+      "breakpoints": true
     }
   ]
 }

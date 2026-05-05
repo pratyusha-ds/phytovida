@@ -2,17 +2,16 @@ import type { Request, Response } from "express";
 import { db } from "../db/index.js";
 import { sql, eq, ilike } from "drizzle-orm";
 import { plants, sourceSync } from "../db/schema.js";
-import type { PerenualPlant, PerenualResponse } from "@repo/types";
+import type { PerenualPlant } from "@repo/types";
 import { cloudinaryUpload } from "../utils/cloudinaryUpload.js";
 
 const PERENUAL_BASE_URL = "https://perenual.com/api";
 const API_KEY = process.env.PERENUAL_API_KEY;
-const MAX_REQUESTS = 100;
+const MAX_PLANT_ID = 100;
 
 export const getPlantsData = async (req: Request, res: Response) => {
 
   try {
-
     let syncRecord = await db
       .select()
       .from(sourceSync)
@@ -31,14 +30,13 @@ export const getPlantsData = async (req: Request, res: Response) => {
       throw new Error("Failed to create sync record");
     }
 
-    const isAtPageLimit = syncRecord.lastFetchedPage >= MAX_REQUESTS;
-    const isAtTotalPages = syncRecord.totalPages !== null && syncRecord.lastFetchedPage >= syncRecord.totalPages;
+    const isExhausted = syncRecord.lastFetchedId >= MAX_PLANT_ID;
 
-    if (isAtPageLimit || isAtTotalPages) {
+    if (isExhausted) {
       return res.status(200).json({ inserted: 0, exhausted: true });
     }
 
-    const nextPage = syncRecord.lastFetchedPage + 1;
+    const nextId = syncRecord.lastFetchedId + 1;
 
     await db
       .update(sourceSync)
@@ -46,42 +44,40 @@ export const getPlantsData = async (req: Request, res: Response) => {
       .where(eq(sourceSync.source, "perenual"));
 
     const response = await fetch(
-      `${PERENUAL_BASE_URL}/v2/species-list?key=${API_KEY}&page=${nextPage}`
+      `${PERENUAL_BASE_URL}/v2/species/details/${nextId}?key=${API_KEY}`
     );
 
     if (!response.ok) {
-      throw new Error(`Perenual API error: ${response.status}`);
+      await db
+        .update(sourceSync)
+        .set({ lastFetchedId: nextId })
+        .where(eq(sourceSync.source, "perenual"));
+
+      return res.status(200).json({ inserted: 0, skipped: nextId });
     }
 
-    let data: PerenualResponse;
+    const plant = (await response.json()) as PerenualPlant;
+
+    console.log("Sample plant from API:", response);
+
+
+    let imageUrl: string | null = null;
     try {
-      data = (await response.json()) as PerenualResponse;
-    } catch (parseError) {
-      console.error("JSON parse error:", parseError);
-      throw parseError;
+      imageUrl = await cloudinaryUpload(plant.default_image?.medium_url);
+    } catch {
+      console.log(`Image upload failed for plant ${plant.id}, skipping`)
     }
-
-    const plantRows = await Promise.all(
-      data.data.map(async (plant: PerenualPlant) => {
-        const cloudinaryUrl = await cloudinaryUpload(
-          plant.default_image?.medium_url
-        );
-
-        return {
-          id: String(plant.id),
-          name: plant.common_name,
-          imageUrl: cloudinaryUrl,
-          watering: plant.watering ?? null,
-          sunlight: plant.sunlight?.join(', ') ?? null,
-          hardiness: plant.hardiness ? JSON.stringify(plant.hardiness) : null,
-
-        };
-      })
-    );
 
     await db
       .insert(plants)
-      .values(plantRows)
+      .values({
+        id: String(plant.id),
+        name: plant.common_name,
+        imageUrl,
+        watering: plant.watering ?? null,
+        sunlight: plant.sunlight?.join(", ") ?? null,
+        hardiness: plant.hardiness ? JSON.stringify(plant.hardiness) : null,
+      })
       .onConflictDoUpdate({
         target: plants.id,
         set: {
@@ -90,22 +86,21 @@ export const getPlantsData = async (req: Request, res: Response) => {
           watering: sql`excluded.watering`,
           sunlight: sql`excluded.sunlight`,
           hardiness: sql`excluded.hardiness`,
-        },
-      });
+        }
+      })
 
     await db
       .update(sourceSync)
       .set({
-        lastFetchedPage: nextPage,
-        totalPages: data.last_page,
+        lastFetchedId: nextId,
         status: "idle",
         errorMessage: null,
       })
       .where(eq(sourceSync.source, "perenual"));
 
     res.status(200).json({
-      inserted: plantRows.length,
-      exhausted: nextPage >= MAX_REQUESTS || nextPage >= data.last_page,
+      inserted: 1,
+      exhausted: nextId >= MAX_PLANT_ID,
     });
 
   } catch (error) {

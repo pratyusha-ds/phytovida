@@ -37,11 +37,6 @@ export interface PerenualPlant {
 	sunlight?: string[];
 }
 
-export interface PerenualResponse {
-	data: PerenualPlant[];
-	last_page: number;
-}
-
 // Plant DB / API
 export interface DbPlant {
 	id: string;
