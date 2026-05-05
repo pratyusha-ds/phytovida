@@ -2,42 +2,42 @@ import type { Request, Response } from "express";
 import { plants, usersPlants } from "../db/schema.js";
 import { db } from "../db/index.js";
 import { and, eq } from "drizzle-orm";
-import { addUserPlant } from "../services/user-plants.js";
+import { addUserPlant, deleteUserPlant, updateUserPlant } from "../services/user-plants.js";
 import { addWateringLog } from "../services/plant-logs.js";
 
 export const createUserPlantController = async (req: Request, res: Response) => {
-	const userId = req.userId || "";
-	const { plantId, phase, wateringFrequency, lastWateredDate } = req.body;
+  const userId = req.userId || "";
+  const { plantId, phase, wateringFrequency, lastWateredDate } = req.body;
 
-	const answer = await addUserPlant({ userId, plantId, phase, wateringFrequency, lastWateredDate });
+  const answer = await addUserPlant({ userId, plantId, phase, wateringFrequency, lastWateredDate });
 
-	answer.match(async (data) => {
-		const userPlant = data[0];
+  answer.match(async (data) => {
+    const userPlant = data[0];
 
-		if (!!userPlant?.lastWateredDate) {
-			const logWateringAns = await addWateringLog(userPlant.id, userId, userPlant.lastWateredDate);
-			logWateringAns.match(() => { }, (logError) => {
-				switch (logError.reason) {
-					case "UserPlantNotFound":
-						return res.status(404).json({ error: true, message: logError.message });
-					case "Unauthorized":
-						return res.status(403).json({ error: true, message: logError.message });
-					default:
-						return res.status(500).json({ error: true, message: logError.message });
-				}
-			});
-		}
-		return res.status(201).json(data);
-	}, (error) => {
-		switch (error.reason) {
-			case "UserNotFound":
-				return res.status(404).json({ error: true, message: error.message });
-			case "PlantNotFound":
-				return res.status(404).json({ error: true, message: error.message });
-			default:
-				return res.status(500).json({ error: true, message: error.message });
-		}
-	})
+    if (!!userPlant?.lastWateredDate) {
+      const logWateringAns = await addWateringLog(userPlant.id, userId, userPlant.lastWateredDate);
+      logWateringAns.match(() => { }, (logError) => {
+        switch (logError.reason) {
+          case "UserPlantNotFound":
+            return res.status(404).json({ error: true, message: logError.message });
+          case "Unauthorized":
+            return res.status(403).json({ error: true, message: logError.message });
+          default:
+            return res.status(500).json({ error: true, message: logError.message });
+        }
+      });
+    }
+    return res.status(201).json(data);
+  }, (error) => {
+    switch (error.reason) {
+      case "UserNotFound":
+        return res.status(404).json({ error: true, message: error.message });
+      case "PlantNotFound":
+        return res.status(404).json({ error: true, message: error.message });
+      default:
+        return res.status(500).json({ error: true, message: error.message });
+    }
+  })
 }
 
 export const readUserPlantsController = async (req: Request, res: Response) => {
@@ -124,6 +124,7 @@ export const readUserPlantController = async (req: Request, res: Response) => {
       .select({
         id: usersPlants.id,
         plantId: usersPlants.plantId,
+        phase: usersPlants.phase,
         wateringFrequency: usersPlants.wateringFrequency,
         lastWateredDate: usersPlants.lastWateredDate,
         plantName: plants.name,
@@ -162,3 +163,53 @@ export const readUserPlantController = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const updateUserPlantController = async (req: Request, res: Response) => {
+  const userPlantId = req.params.userPlantId;
+
+  if (!!userPlantId && isNaN(Number(userPlantId))) {
+    return res.status(400).json({ error: true, message: "Invalid id" })
+  }
+
+  const userId = req.userId!;
+  const { fields } = req.body;
+
+  const answer = await updateUserPlant(userId, Number(userPlantId), fields)
+
+  answer.match(
+    (data) => {
+      return res.status(200).json({ data: data.length > 0 ? data[0] : {} })
+    },
+    (error) => {
+      switch (error.reason) {
+        case "UserPlantNotFound": { return res.status(404).json({ error: true, message: error.message }); break; };
+        case "Unauthorized": { return res.status(403).json({ error: true, message: error.message }); break; }
+        default: { return res.status(500).json({ error: true, message: error.message }); break; }
+      }
+    }
+  )
+}
+
+export const deleteUerPlantController = async (req: Request, res: Response) => {
+  const userId = req.userId!;
+  const userPlantId = req.params.userPlantId;
+
+  if (!!userPlantId && isNaN(Number(userPlantId))) {
+    return res.status(400).json({ error: true, message: "Invalid id" })
+  }
+
+  const answer = await deleteUserPlant(userId, Number(userPlantId));
+
+  answer.match(
+    () => {
+      return res.status(200).json({ message: `Plant ${userPlantId} deleted successfully` });
+    },
+    (error) => {
+      switch (error.reason) {
+        case "UserPlantNotFound": { return res.status(404).json({ error: true, message: error.message }); break; };
+        case "Unauthorized": { return res.status(403).json({ error: true, message: error.message }); break; }
+        default: { return res.status(500).json({ error: true, message: error.message }); break; }
+      }
+    }
+  )
+}

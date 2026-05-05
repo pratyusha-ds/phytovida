@@ -5,3 +5,8 @@ export interface UserPlantCreation {
     wateringFrequency: number | null;
     lastWateredDate: Date | null;
 }
+
+export interface UserPlantUpdate {
+    phase?: string;
+    wateringFrequency?: number | null;
+}

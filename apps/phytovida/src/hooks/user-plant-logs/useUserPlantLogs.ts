@@ -55,9 +55,9 @@ export const useCreateUserPlantLog = () => {
 						pages: old.pages.map((page: any, i: number) =>
 							i === 0
 								? {
-										...page,
-										data: [newLog.data, ...page.data],
-									}
+									...page,
+									data: [newLog.data, ...page.data],
+								}
 								: page,
 						),
 					};

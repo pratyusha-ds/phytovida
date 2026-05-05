@@ -11,7 +11,6 @@ export const registerUser = async (req: Request, res: Response) => {
     if (event.type !== "user.created") {
         return res.status(400).json({ error: "Unsupported event type" });
     }
-
     const userId = event.data.id;
 
     const result = await saveUserId(userId);
