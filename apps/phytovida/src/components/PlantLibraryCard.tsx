@@ -17,7 +17,7 @@ export function PlantLibraryCard({ id, name, imageUrl, hardiness, watering, sunl
     const zones = parseHardiness(hardiness);
 
     return (
-        <div className="rounded-lg border group overflow-hidden relative md:w-[90%] w-[90dvw] h-99.5 shadow-sm">
+        <div className="rounded-lg border group overflow-hidden relative md:w-[90%] w-[90dvw] h-99.5 shadow-sm mx-auto">
             <img
                 className="absolute h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
                 src={imageUrl ?? "https://img.freepik.com/free-vector/green-botany-flat-bush-vector_53876-164108.jpg"}

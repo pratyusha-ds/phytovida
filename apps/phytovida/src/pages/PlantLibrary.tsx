@@ -89,7 +89,7 @@ export default function PlantLibrary() {
 
     return (
         <section className="w-full space-y-10  md:mt-32 ">
-            <div className="h-full grid place-content-center gap-10">
+            <div className="h-full grid max-w-5xl mx-auto w-full flex flex-col gap-10">
                 <h1 className="flex justify-center text-headline md:text-8xl">
                     Plant Library
                 </h1>
@@ -104,9 +104,9 @@ export default function PlantLibrary() {
                 {error && <p className="text-red-500 text-center">{error}</p>}
 
                 {allPlants.length > 0 && (
-                    <ul className="grid grid-col-1 gap-4">
+                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {allPlants.map((plant) => (
-                            <li key={plant.id} className="border rounded p-4">
+                            <li key={plant.id}>
                                 <PlantLibraryCard {...plant} />
                             </li>
                         ))}
