@@ -55,6 +55,7 @@ export const readUserPlantsController = async (req: Request, res: Response) => {
     const page = Number(req.query.page ?? 1);
     const limit = Number(req.query.limit ?? 10);
     const offset = (page - 1) * limit;
+    const phase = String(req.query.phase ?? "growing");
 
     // total count (for pagination meta)
     const totalResult = await db
@@ -71,6 +72,7 @@ export const readUserPlantsController = async (req: Request, res: Response) => {
         plantId: usersPlants.plantId,
         wateringFrequency: usersPlants.wateringFrequency,
         lastWateredDate: usersPlants.lastWateredDate,
+        phase: usersPlants.phase,
         plantName: plants.name,
         plantImg: plants.imageUrl,
         watering: plants.watering,
@@ -79,7 +81,11 @@ export const readUserPlantsController = async (req: Request, res: Response) => {
       })
       .from(usersPlants)
       .leftJoin(plants, eq(usersPlants.plantId, plants.id))
-      .where(eq(usersPlants.userId, userId)) // ownership check
+      .where(
+        and(
+          eq(usersPlants.userId, userId),
+          eq(usersPlants.phase, phase)
+        )) // ownership check
       .limit(limit)
       .offset(offset);
 
