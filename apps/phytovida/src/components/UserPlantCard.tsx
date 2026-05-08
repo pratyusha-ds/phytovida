@@ -1,21 +1,23 @@
 import type { UserPlant } from "@repo/types";
 import { Droplet, Droplets, Thermometer } from "lucide-react";
 import { useNavigate } from "react-router";
+import { parseHardiness } from "./PlantLibraryCard";
 
 export function UserPlantCard({
 	id,
 	lastWateredDate,
 	plantName,
 	plantImg = "https://img.freepik.com/free-vector/green-botany-flat-bush-vector_53876-164108.jpg?semt=ais_hybrid&w=740&q=80",
-	minTemp,
-	maxTemp,
+	hardiness,
 	wateringFrequency,
 }: UserPlant) {
 	const navigate = useNavigate();
+	const zones = parseHardiness(hardiness);
+
 	return (
 		<div
 			onClick={() => navigate(`/my-garden/${id}`)}
-			className="rounded-lg border group overflow-hidden relative   md:w-[90%] w-[90dvw] h-99.5  shadow-sm ">
+			className="rounded-lg border group overflow-hidden relative md:w-[90%] w-[90dvw] h-96  shadow-sm mx-auto">
 			<img
 				className="absolute  h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
 				src={
@@ -27,32 +29,32 @@ export function UserPlantCard({
 			<div className="absolute p-5 bg-white/50 rounded-t-2xl  backdrop-blur-xs h-28 translate-y-28 transition-all duration-500 group-hover:translate-y-0 bottom-0 left-0 w-full">
 				<div className="flex items-center justify-between">
 					<h2 className="text-2xl">{plantName}</h2>
-					<div className="flex gap-2 items-center">
-						<Thermometer size={14} className="text-gray-500" />
-						<p className="text-sm">
-							{minTemp}°C - {maxTemp}°C
+					{zones && <div className="flex gap-2 items-center">
+						<Thermometer size={14} className="text-black" />
+						<p className="text-sm text-black">
+							{zones.min}°C - {zones.max}°C
 						</p>
-					</div>
+					</div>}
 				</div>
 				<div className="flex  gap-0.5 items-center">
-					<Droplets className="text-gray-500" size={14} />
-					<p className="text-sm">
+					<Droplets className="text-blue-500" size={14} />
+					<p className="text-sm text-black italic">
 						Watering frequency:{" "}
-						<span className="text-md font-medium  ">{wateringFrequency}</span>
+						<span className="text-md font-medium  ">{wateringFrequency ? wateringFrequency : "Not set"}</span>
 					</p>
 				</div>
 
 				<div className="flex  gap-0.5 items-center">
-					<Droplet className="text-gray-500" size={14} />
-					<p className="text-sm">
+					<Droplet className="text-blue-500" size={14} />
+					<p className="text-sm text-black">
 						Last Watered:{" "}
-						<span className="text-md font-medium ">
+						<span className="text-md font-medium italic">
 							{lastWateredDate
 								? new Date(lastWateredDate).toLocaleDateString("en-US", {
-										month: "short",
-										day: "numeric",
-										year: "numeric",
-									})
+									month: "short",
+									day: "numeric",
+									year: "numeric",
+								})
 								: "Don't have watering log yet."}
 						</span>
 					</p>

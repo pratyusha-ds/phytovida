@@ -169,13 +169,21 @@ export const createPlantLogController = async (
       });
     }
 
+    const lastWateredDate = new Date();
+
     const [log] = await db
       .insert(plantWateringLogs)
       .values({
         userId,
         userPlantId: plantId,
+        wateredAt: lastWateredDate
       })
       .returning();
+
+    await db
+      .update(usersPlants)
+      .set({ lastWateredDate: lastWateredDate })
+      .where(eq(usersPlants.id, plantId))
 
     sendResponse(res, 201, {
       data: log,

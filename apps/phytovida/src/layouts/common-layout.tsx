@@ -1,5 +1,6 @@
 import { Outlet } from 'react-router';
 import { Header } from '@/components/header';
+import { Footer } from '@/components/footer';
 import NotificationPermission from '@/components/NotificationPermission';
 import { useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
@@ -21,6 +22,7 @@ export default function CommonLayout() {
       <main>
         <Outlet />
       </main>
+      <Footer />
     </div>
   );
 }

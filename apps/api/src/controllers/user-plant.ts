@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { plants, usersPlants } from "../db/schema.js";
 import { db } from "../db/index.js";
-import { and, eq } from "drizzle-orm";
+import { and, count, eq } from "drizzle-orm";
 import { addUserPlant, deleteUserPlant, updateUserPlant } from "../services/user-plants.js";
 import { addWateringLog } from "../services/plant-logs.js";
 
@@ -55,12 +55,13 @@ export const readUserPlantsController = async (req: Request, res: Response) => {
     const page = Number(req.query.page ?? 1);
     const limit = Number(req.query.limit ?? 10);
     const offset = (page - 1) * limit;
+    const phase = String(req.query.phase ?? "growing");
 
     // total count (for pagination meta)
     const totalResult = await db
       .select({ count: usersPlants.id })
       .from(usersPlants)
-      .where(eq(usersPlants.userId, userId)); // ownership check
+      .where(and(eq(usersPlants.userId, userId), eq(usersPlants.phase, phase))); // ownership check
 
     const total = totalResult.length;
 
@@ -71,6 +72,7 @@ export const readUserPlantsController = async (req: Request, res: Response) => {
         plantId: usersPlants.plantId,
         wateringFrequency: usersPlants.wateringFrequency,
         lastWateredDate: usersPlants.lastWateredDate,
+        phase: usersPlants.phase,
         plantName: plants.name,
         plantImg: plants.imageUrl,
         watering: plants.watering,
@@ -79,7 +81,11 @@ export const readUserPlantsController = async (req: Request, res: Response) => {
       })
       .from(usersPlants)
       .leftJoin(plants, eq(usersPlants.plantId, plants.id))
-      .where(eq(usersPlants.userId, userId)) // ownership check
+      .where(
+        and(
+          eq(usersPlants.userId, userId),
+          eq(usersPlants.phase, phase)
+        )) // ownership check
       .limit(limit)
       .offset(offset);
 

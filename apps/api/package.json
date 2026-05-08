@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node dist/index.cjs",
     "dev": "tsdown --watch --onSuccess \"node dist/index.cjs\"",
-    "test": "echo 'No tests yet'",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "build": "tsdown",
     "lint": "eslint . --max-warnings 0",
     "check-types": "tsc --noEmit",
@@ -47,6 +48,7 @@
     "globals": "^17.4.0",
     "jiti": "^2.6.1",
     "tsdown": "^0.21.7",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^4.1.5"
   }
 }

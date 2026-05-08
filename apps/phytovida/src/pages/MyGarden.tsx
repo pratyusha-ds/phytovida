@@ -1,18 +1,19 @@
 import { ErrorUI } from "@/components/ErrorUI";
 import MyPlantsLists from "@/components/MyPlantsLists";
 import { UserPlantCardSkeleton } from "@/components/UserPlantCard";
-import { WorkInProgress } from "@/components/WorkInProgress";
 import { useApiClient } from "@/lib/authFetch";
 
 import type { ApiPaginatedResponse, UserPlant } from "@repo/types";
 import { Button } from "@repo/ui/components/button";
 import { cn } from "@repo/ui/lib/utils";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router";
 
 export default function MyGarden() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
-  const [isShowPlanningPlants, setIsShowPlanningPlants] = useState(true);
+  const [isShowPlanningPlants, setIsShowPlanningPlants] = useState(false);
   const [plants, setPlants] = useState<UserPlant[]>([]);
   const [totalPlants, setTotalPlants] = useState(0);
   const { apiClient } = useApiClient();
@@ -24,14 +25,13 @@ export default function MyGarden() {
   const limit = 10;
 
   const fetchPlants = useCallback(async () => {
-    if (loading || !hasNextPage) return;
-
+    if (loading) return;
     try {
       setLoading(true);
       setError("");
 
       const data: ApiPaginatedResponse<UserPlant> = await apiClient.get(
-        `/my-plants?page=${pageRef.current}&limit=${limit}`,
+        `/my-plants?phase=${isShowPlanningPlants ? "planning" : "growing"}&page=${pageRef.current}&limit=${limit}`,
       );
 
       setPlants((prev) => {
@@ -39,6 +39,7 @@ export default function MyGarden() {
         const filtered = (data.data || []).filter(
           (p) => !existingIds.has(p.id),
         );
+
         return [...prev, ...filtered];
       });
 
@@ -52,11 +53,11 @@ export default function MyGarden() {
       setLoading(false);
       setInitialLoading(false);
     }
-  }, [loading, hasNextPage, apiClient]);
+  }, [isShowPlanningPlants, loading, hasNextPage, apiClient]);
 
   useEffect(() => {
     fetchPlants();
-  }, []);
+  }, [isShowPlanningPlants]);
 
   // infinite scroll trigger
   useEffect(() => {
@@ -92,15 +93,25 @@ export default function MyGarden() {
   return (
     <section className="w-full space-y-10  md:mt-32 ">
       <div className="flex gap-10 items-center justify-center">
+
         <Button
-          onClick={() => setIsShowPlanningPlants(true)}
-          className={tabClass(isShowPlanningPlants)}
+          onClick={() => {
+            pageRef.current = 1;
+            setPlants([]);
+            setIsShowPlanningPlants(false);
+          }
+          }
+          className={tabClass(!isShowPlanningPlants)}
         >
           Growing
         </Button>
         <Button
-          onClick={() => setIsShowPlanningPlants(false)}
-          className={tabClass(!isShowPlanningPlants)}
+          onClick={() => {
+            pageRef.current = 1;
+            setPlants([]);
+            setIsShowPlanningPlants(true);
+          }}
+          className={tabClass(isShowPlanningPlants)}
         >
           Planning
         </Button>
@@ -108,29 +119,35 @@ export default function MyGarden() {
       <div className="flex flex-col items-center space-y-2 md:space-y-5">
         <h1 className="md:text-8xl">My Garden</h1>
         <h4 className="text-accent6 text-3xl text-center">
-          {isShowPlanningPlants ? (
+
+          {!totalPlants ? (
             <>
-              {!totalPlants ? (
-                "Start tracking your plants"
-              ) : (
-                <>
-                  <span>
-                    Monitoring {loading ? 0 : plants.length}{" "}
-                    <br className="block md:hidden" /> plants in your <br />{" "}
-                    garden
-                  </span>
-                </>
-              )}
+              {isShowPlanningPlants
+                ? "Start your planting plan"
+                : "Start tracking your plants"
+              }
             </>
           ) : (
-            "Start your planting plan"
+            <>{isShowPlanningPlants
+              ?
+              <span className="block w-4/5 mx-auto">
+                {loading ? 0 : totalPlants} plant{!!totalPlants && totalPlants > 1 ? "s are" : " is"} waiting for you to plant
+              </span>
+              :
+              <span>
+                {loading ? 0 : totalPlants}{" "}
+                <br className="block md:hidden" /> plant{totalPlants && totalPlants > 1 &&"s"} growing in your <br />{" "}
+                garden
+              </span>}
+            </>
           )}
+
         </h4>
-        {isShowPlanningPlants ? (
+        {
           !initialLoading && plants.length === 0 ? (
             <>
               <Button
-                onClick={() => window.alert("Coming soon!")}
+                onClick={() => navigate("/plant-library")}
                 className="bg-accent3 rounded-full mt-5 hover:bg-accent3/90"
               >
                 Add Plant
@@ -158,12 +175,7 @@ export default function MyGarden() {
                 </p>
               )}
             </>
-          )
-        ) : (
-          <>
-            <WorkInProgress />
-          </>
-        )}
+          )}
       </div>
     </section>
   );

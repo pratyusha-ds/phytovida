@@ -27,7 +27,7 @@ const WateringFrequencyEdit = ({ setEditMode, userPlantId, defaultValue, updateU
         )
     }
     return (
-        <div className="flex mt-4">
+        <div className="flex flex-col md:flex-row mt-4">
             <div className="flex gap-2 items-center">
                 <p>Every</p>
                 <Input
@@ -38,7 +38,7 @@ const WateringFrequencyEdit = ({ setEditMode, userPlantId, defaultValue, updateU
                     className="w-30 bg-white" />
                 <p>days</p>
             </div>
-            <div className="flex gap-2 ml-auto">
+            <div className="flex gap-2 mt-6 md:mt-0 mx-auto md:mx-0 md:ml-auto">
                 <Button
                     className="rounded-4xl bg-white text-black hover:bg-gray-100"
                     onClick={() => setEditMode(false)}

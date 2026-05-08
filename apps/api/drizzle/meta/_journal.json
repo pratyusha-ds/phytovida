@@ -50,6 +50,13 @@
       "when": 1777984394268,
       "tag": "0006_sturdy_violations",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1778083286430,
+      "tag": "0007_freezing_rhodey",
+      "breakpoints": true
     }
   ]
 }

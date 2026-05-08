@@ -6,6 +6,7 @@ export interface UserPlant {
 	lastWateredDate: string;
 	plantName: string;
 	plantImg?: string;
-	minTemp: number;
-	maxTemp: number;
+	sunlight: string;
+	watering: string;
+	hardiness?: string;
 }

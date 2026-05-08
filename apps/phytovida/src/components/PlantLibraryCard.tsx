@@ -8,13 +8,13 @@ import { Link } from "react-router";
 const PLACEHOLDER_IMAGE =
   "https://img.freepik.com/free-vector/green-botany-flat-bush-vector_53876-164108.jpg";
 
-function parseHardiness(hardiness: string | null | undefined) {
-  if (!hardiness) return null;
-  try {
-    return JSON.parse(hardiness) as { min: string; max: string };
-  } catch {
-    return null;
-  }
+export function parseHardiness(hardiness: string | null | undefined) {
+    if (!hardiness) return null;
+    try {
+        return JSON.parse(hardiness) as { min: string; max: string };
+    } catch {
+        return null;
+    }
 }
 
 export function PlantLibraryCard({

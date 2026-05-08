@@ -8,14 +8,14 @@ interface MyPlantsListsProps {
 
 export default function MyPlantsLists({ loading, plants }: MyPlantsListsProps) {
 	return (
-		<div className="flex flex-col items-center py-5 gap-y-5 w-full  ">
+		<div className="grid grid-cols-[repeat(auto-fit,minmax(300px,500px))] justify-center gap-4 w-full">
 			{loading
 				? Array.from({ length: 5 }).map((_, index) => (
-						<UserPlantCardSkeleton key={index} />
-					))
+					<UserPlantCardSkeleton key={index} />
+				))
 				: plants.map((plant) => (
-						<UserPlantCard key={`user-plant-card-${plant.id}`} {...plant} />
-					))}
+					<UserPlantCard key={`user-plant-card-${plant.id}`} {...plant} />
+				))}
 		</div>
 	);
 }
