@@ -1,18 +1,10 @@
-import { SignIn } from "@clerk/clerk-react";
-import { useLocation } from "react-router";
+import { SignUp } from "@clerk/clerk-react";
 
-export default function SignInPage() {
-  const { state } = useLocation();
-
+export default function SignUpPage() {
   return (
-    <SignIn
-      //   appearance={{
-      //     elements: {
-      //       formButtonPrimary: 'bg-primary',
-      //     },
-      //   }}
-      signUpUrl="/auth/sign-up"
-      fallbackRedirectUrl={state?.from || "/"}
+    <SignUp
+      signInUrl="/auth/sign-in"
+      forceRedirectUrl="/dashboard"
     />
   );
 }

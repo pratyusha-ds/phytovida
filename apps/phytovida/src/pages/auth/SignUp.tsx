@@ -4,5 +4,5 @@ import { useLocation } from "react-router";
 export default function SignInPage() {
   const { state } = useLocation();
 
-  return <SignUp fallbackRedirectUrl={state?.from || "/"} />;
+  return <SignUp fallbackRedirectUrl={state?.from || "/dashboard"} />;
 }
