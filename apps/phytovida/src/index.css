@@ -1,3 +1,11 @@
 @layer theme, base, clerk, components, utilities;
 @import "tailwindcss";
 @import "@repo/ui/styles.css";
+
+@layer base {
+
+    button:not(:disabled),
+    [role="button"]:not(:disabled) {
+        cursor: pointer;
+    }
+}

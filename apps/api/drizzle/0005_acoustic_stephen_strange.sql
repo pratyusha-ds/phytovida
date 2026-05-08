@@ -1,0 +1,2 @@
+ALTER TABLE "push_notifications" ADD CONSTRAINT "push_notifications_endpoint_push_subscriptions_endpoint_fk" FOREIGN KEY ("endpoint") REFERENCES "public"."push_subscriptions"("endpoint") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "push_subscriptions" ADD CONSTRAINT "push_subscriptions_endpoint_unique" UNIQUE("endpoint");
