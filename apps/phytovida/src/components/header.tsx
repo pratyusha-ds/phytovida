@@ -72,16 +72,6 @@ export function Header() {
               },
             }}
           />
-          //   <SignOutButton>
-          //     <Button
-          //       variant='destructive'
-          //       className='rounded-full'
-          //     >
-          //       <span className='sr-only'>Log out</span>
-          //       Log out
-          //       <LogOut />
-          //     </Button>
-          //   </SignOutButton>
         )}
       </div>
 
@@ -100,28 +90,28 @@ export function Header() {
       {menuOpen && (
         <div className='absolute top-full left-0 right-0 z-50 bg-background border-t flex flex-col px-5 py-4 gap-4 md:hidden shadow-md'>
           <Link
-            to='/'
+            to={isSignedIn ? '/dashboard' : '/auth/sign-in'}
+            className='font-sans text-sm font-bold text-base text-accent4 hover:text-link transition-colors duration-200'
+          >
+            Dashboard
+          </Link>
+          <Link
+            to={isSignedIn ? '/my-garden' : '/auth/sign-in'}
             className='font-sans text-sm font-bold text-base text-accent4 hover:text-link transition-colors duration-200'
           >
             My Garden
           </Link>
           <Link
-            to='/'
+            to='/plant-library'
             className='font-sans text-sm font-bold text-base text-accent4 hover:text-link transition-colors duration-200'
           >
             Plant Library
           </Link>
           <Link
-            to='/'
+            to='/ask-ai'
             className='font-sans text-sm font-bold text-base text-accent4 hover:text-link transition-colors duration-200'
           >
-            Guides
-          </Link>
-          <Link
-            to='/'
-            className='font-sans text-sm font-bold text-base text-accent4 hover:text-link transition-colors duration-200'
-          >
-            Community
+            Ask AI
           </Link>
 
           <div>
@@ -147,13 +137,6 @@ export function Header() {
                   },
                 }}
               />
-              // <SignOutButton>
-              // 	<Button variant="destructive" className="rounded-full">
-              // 		<span className="sr-only">Log out</span>
-              // 		Log out
-              // 		<LogOut />
-              // 	</Button>
-              // </SignOutButton>
             )}
           </div>
         </div>
