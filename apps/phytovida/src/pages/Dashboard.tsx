@@ -48,7 +48,7 @@ export default function Dashboard() {
       <div className="min-h-1/2 flex flex-col md:flex-row items-stretch mt-6 px-4">
         <div className="flex-1 flex flex-col items-start p-6 gap-4">
           <h2>Today's tasks</h2>
-          <TaskList />
+          <TaskList plants={data?.plants}/>
         </div>
       </div>
 
