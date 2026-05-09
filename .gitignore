@@ -8,7 +8,8 @@ node_modules
 # Local env files
 .env*
 # exclude sample env
-!.env.sample
+!.env.example*
+
 
 # Testing
 coverage

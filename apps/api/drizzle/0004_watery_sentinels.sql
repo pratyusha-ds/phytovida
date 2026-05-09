@@ -1,0 +1,1 @@
+ALTER TABLE "push_notifications" ALTER COLUMN "plant_id" SET DATA TYPE text;

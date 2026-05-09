@@ -1,32 +1,39 @@
-import dotenv from "dotenv";
-import express from "express";
-import path from "node:path";
-
-// For Development only
-if (process.env.NODE_ENV !== "production") {
-  dotenv.config({
-    path: path.resolve(process.cwd(), "../../.env.development"),
-  });
-}
+import 'dotenv/config'; // Load environment variables from .env file
+import express from 'express';
+import { clerkMiddleware } from '@clerk/express';
+import cors from 'cors';
+import appRoutes from './routes/index.js';
+import dashboardRoutes from './routes/dashboard.js';
+import plantRoutes from './routes/plantlibrary.js';
+import pushRoutes from './routes/push.js';
+import { startScheduler } from './jobs/scheduler.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Middlewares
+app.use(cors());
+app.use(express.json());
+app.use(clerkMiddleware());
+
+// API Routes
+app.use('/api', appRoutes);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/plants', plantRoutes);
+app.use('/api/auth/register/clerk', express.raw({ type: 'application/json' }));
+app.use('/api/push', pushRoutes);
+
 // Health check endpoint
-app.get("/health", (req, res) => {
+app.get('/health', (req, res) => {
   res.status(200).json({
-    status: "ok",
+    status: 'ok',
     uptime: process.uptime(),
     timestamp: new Date(Date.now()).toUTCString(),
   });
 });
 
-// Example route
-app.get("/", (req, res) => {
-  res.send("API is running");
-});
-
 app.listen(PORT, () => {
   // eslint-disable-next-line no-console
   console.log(`Server running on http://localhost:${PORT}`);
+  startScheduler();
 });

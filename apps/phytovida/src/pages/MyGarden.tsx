@@ -1,0 +1,182 @@
+import { ErrorUI } from "@/components/ErrorUI";
+import MyPlantsLists from "@/components/MyPlantsLists";
+import { UserPlantCardSkeleton } from "@/components/UserPlantCard";
+import { useApiClient } from "@/lib/authFetch";
+
+import type { ApiPaginatedResponse, UserPlant } from "@repo/types";
+import { Button } from "@repo/ui/components/button";
+import { cn } from "@repo/ui/lib/utils";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router";
+
+export default function MyGarden() {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [isShowPlanningPlants, setIsShowPlanningPlants] = useState(false);
+  const [plants, setPlants] = useState<UserPlant[]>([]);
+  const [totalPlants, setTotalPlants] = useState(0);
+  const { apiClient } = useApiClient();
+  const [error, setError] = useState("");
+  const pageRef = useRef(1);
+  const [hasNextPage, setHasNextPage] = useState(true);
+
+  const observerRef = useRef<HTMLDivElement | null>(null);
+  const limit = 10;
+
+  const fetchPlants = useCallback(async () => {
+    if (loading) return;
+    try {
+      setLoading(true);
+      setError("");
+
+      const data: ApiPaginatedResponse<UserPlant> = await apiClient.get(
+        `/my-plants?phase=${isShowPlanningPlants ? "planning" : "growing"}&page=${pageRef.current}&limit=${limit}`,
+      );
+
+      setPlants((prev) => {
+        const existingIds = new Set(prev.map((p) => p.id));
+        const filtered = (data.data || []).filter(
+          (p) => !existingIds.has(p.id),
+        );
+
+        return [...prev, ...filtered];
+      });
+
+      setHasNextPage(data.pagination?.hasNextPage ?? false);
+      setTotalPlants(data.pagination?.total ?? (data.data?.length || 0));
+
+      pageRef.current += 1;
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setLoading(false);
+      setInitialLoading(false);
+    }
+  }, [isShowPlanningPlants, loading, hasNextPage, apiClient]);
+
+  useEffect(() => {
+    fetchPlants();
+  }, [isShowPlanningPlants]);
+
+  // infinite scroll trigger
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !loading && hasNextPage) {
+          fetchPlants();
+        }
+      },
+      { threshold: 1 },
+    );
+
+    const el = observerRef.current;
+    if (el) observer.observe(el);
+
+    return () => {
+      if (el) observer.unobserve(el);
+    };
+  }, [fetchPlants, loading, hasNextPage]);
+
+  const tabClass = (active: boolean) =>
+    cn(
+      "rounded-full shadow-none",
+      active
+        ? "bg-accent3 hover:bg-accent3/90"
+        : "bg-accent3/60 hover:bg-accent3",
+    );
+
+  if (error) {
+    return <ErrorUI message={error} onRetry={fetchPlants} />;
+  }
+
+  return (
+    <section className="w-full space-y-10  md:mt-32 ">
+      <div className="flex gap-10 items-center justify-center">
+
+        <Button
+          onClick={() => {
+            pageRef.current = 1;
+            setPlants([]);
+            setIsShowPlanningPlants(false);
+          }
+          }
+          className={tabClass(!isShowPlanningPlants)}
+        >
+          Growing
+        </Button>
+        <Button
+          onClick={() => {
+            pageRef.current = 1;
+            setPlants([]);
+            setIsShowPlanningPlants(true);
+          }}
+          className={tabClass(isShowPlanningPlants)}
+        >
+          Planning
+        </Button>
+      </div>
+      <div className="flex flex-col items-center space-y-2 md:space-y-5">
+        <h1 className="md:text-8xl">My Garden</h1>
+        <h4 className="text-accent6 text-3xl text-center">
+
+          {!totalPlants ? (
+            <>
+              {isShowPlanningPlants
+                ? "Start your planting plan"
+                : "Start tracking your plants"
+              }
+            </>
+          ) : (
+            <>{isShowPlanningPlants
+              ?
+              <span className="block w-4/5 mx-auto">
+                {loading ? 0 : totalPlants} plant{!!totalPlants && totalPlants > 1 ? "s are" : " is"} waiting for you to plant
+              </span>
+              :
+              <span>
+                {loading ? 0 : totalPlants}{" "}
+                <br className="block md:hidden" /> plant{totalPlants && totalPlants > 1 &&"s"} growing in your <br />{" "}
+                garden
+              </span>}
+            </>
+          )}
+
+        </h4>
+        {
+          !initialLoading && plants.length === 0 ? (
+            <>
+              <Button
+                onClick={() => navigate("/plant-library")}
+                className="bg-accent3 rounded-full mt-5 hover:bg-accent3/90"
+              >
+                Add Plant
+              </Button>
+            </>
+          ) : (
+            <>
+              {/*  //TODO: Add Panel for planning to plant and growing plants, show only the active category (growing/planning) */}
+              <MyPlantsLists loading={initialLoading} plants={plants} />
+
+              {/*   Sentinel for infinite scroll */}
+              <div ref={observerRef} className="h-10 w-full" />
+
+              {/* Loading indicator */}
+              {loading && (
+                <div className="w-full -mt-20 flex justify-center mb-20">
+                  <UserPlantCardSkeleton />
+                </div>
+              )}
+
+              {/* End state */}
+              {!hasNextPage && plants.length > 0 && (
+                <p className="text-sm text-gray-400 mb-20">
+                  No more plants to load
+                </p>
+              )}
+            </>
+          )}
+      </div>
+    </section>
+  );
+}
