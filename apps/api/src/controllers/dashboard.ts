@@ -55,3 +55,38 @@ export const getDashboardData = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Failed to fetch dashboard data" });
   }
 };
+
+export const updateUserLocation = async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const { location } = req.body;
+
+  if (!userId || typeof userId !== "string") {
+    res.status(400).json({ error: "User ID is required" });
+    return;
+  }
+
+  if (!location || typeof location !== "string" || !location.trim()) {
+    res.status(400).json({ error: "A valid location is required" });
+    return;
+  }
+
+  try {
+    const updated = await db
+      .update(userSettings)
+      .set({ homeLocation: location.trim() })
+      .where(eq(userSettings.userId, userId))
+      .returning();
+
+    const [updatedSettings] = updated;
+
+    if (!updatedSettings) {
+      res.status(404).json({ error: "User settings not found" });
+      return;
+    }
+
+    res.json({ location: updatedSettings.homeLocation });
+  } catch (err) {
+    console.log("Update location error", err);
+    res.status(500).json({ error: "Failed to update location" });
+  }
+};

@@ -1,8 +1,12 @@
 import logo from '@/assets/logo.svg';
 import { Link } from 'react-router';
 import { Leaf, User } from 'lucide-react';
+import { useAuth } from '@clerk/clerk-react';
+
 
 export function Footer() {
+  const { isSignedIn } = useAuth();
+
   return (
     <footer className='border-t border-border mt-20'>
       <div className='max-w-5xl mx-auto px-5 py-12 flex flex-col gap-4'>
@@ -21,20 +25,26 @@ export function Footer() {
           </div>
 
           {/* Grow box */}
-          <div className='p-6 flex flex-col gap-3 items-center'>
+          <div className='p-6 flex flex-col gap-3 justify-center items-center'>
             <Leaf />
-            <h5 className='text-sm font-bold text-foreground'>Grow</h5>
-            <Link to='/my-garden' className='text-sm text-accent4 hover:text-link transition-colors duration-200'>My Garden</Link>
+            <Link to='/my-garden' className='hover:text-link transition-colors duration-200'>
+              <h5 className='text-sm font-bold text-foreground'>Grow</h5>
+            </Link>
           </div>
 
           {/* Profile box */}
-          <div className='p-6 flex flex-col gap-3 items-center'>
+          <div className='p-6 flex flex-col gap-3 justify-center items-center'>
             <User />
-            <h5 className='text-sm font-bold text-foreground'>Profile</h5>
-            <Link to='/auth/sign-in' className='text-sm text-accent4 hover:text-link transition-colors duration-200'>Sign in</Link>
-
+            {!isSignedIn ? (
+              <Link to='/auth/sign-up' className='hover:text-link transition-colors duration-200'>
+                <h5 className='text-sm font-bold text-foreground'>Sign up</h5>
+              </Link>
+            ) : (
+              <Link to='/dashboard' className='hover:text-link transition-colors duration-200'>
+                <h5 className='text-sm font-bold text-foreground'>Dashboard</h5>
+              </Link>
+            )}
           </div>
-
         </div>
 
         {/* Bottom bar */}
