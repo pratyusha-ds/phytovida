@@ -9,6 +9,36 @@ const PERENUAL_BASE_URL = "https://perenual.com/api";
 const API_KEY = process.env.PERENUAL_API_KEY;
 const MAX_BATCH_SIZE = 30;
 
+// ---------- Paywall detection helpers ----------
+
+function isPaywallImage(url: string | null | undefined): boolean {
+  if (!url) return true;
+  return url.includes("/image/upgrade_access");
+}
+
+function isPaywallDetailsResponse(data: any): boolean {
+  return (
+    !data?.id ||
+    !data?.common_name ||
+    (typeof data?.message === "string" &&
+      data.message.toLowerCase().includes("upgrade")) ||
+    (typeof data?.X === "string" && data.X.toLowerCase().includes("upgrade"))
+  );
+}
+
+async function safeImageUpload(
+  rawUrl: string | null | undefined,
+  plantId: number | string,
+): Promise<string | null> {
+  if (isPaywallImage(rawUrl)) return null;
+  try {
+    return await cloudinaryUpload(rawUrl);
+  } catch {
+    console.log(`Image upload failed for plant ${plantId}, skipping`);
+    return null;
+  }
+}
+
 // Search plants by name using Perenual API
 export const getPlantByName = async (req: Request, res: Response) => {
   try {
@@ -18,41 +48,83 @@ export const getPlantByName = async (req: Request, res: Response) => {
         .status(400)
         .json({ error: "Name query parameter is required" });
     }
-    const page = Number(req.query.page ?? 1);
-    const params = new URLSearchParams({
-      key: API_KEY!,
-      q: name,
-      page: String(page),
-    });
 
-    const url = `${PERENUAL_BASE_URL}/v2/species-list?${params.toString()}`;
-    const response = await fetch(url);
-    if (!response.ok) {
-      console.error(
-        `Perenual search failed: ${response.status} ${response.statusText}`,
-      );
-      return res.status(502).json({ error: "Failed to fetch from Perenual" });
+    const MIN_RESULTS = 5;
+    const MAX_PAGES = 5; // safety cap to avoid hammering Perenual
+
+    const collected: {
+      id: string;
+      name: string;
+      imageUrl: string | null;
+      watering: string | null;
+      sunlight: string | null;
+    }[] = [];
+
+    let currentPage = Number(req.query.page ?? 1);
+    let lastPage = 1;
+    let pagesFetched = 0;
+
+    while (collected.length < MIN_RESULTS && pagesFetched < MAX_PAGES) {
+      const params = new URLSearchParams({
+        key: API_KEY!,
+        q: name,
+        page: String(currentPage),
+      });
+
+      const url = `${PERENUAL_BASE_URL}/v2/species-list?${params.toString()}`;
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        console.error(
+          `Perenual search failed: ${response.status} ${response.statusText}`,
+        );
+        // If first page fails, return error. Otherwise return what we have.
+        if (pagesFetched === 0) {
+          return res
+            .status(502)
+            .json({ error: "Failed to fetch from Perenual" });
+        }
+        break;
+      }
+
+      const json = (await response.json()) as {
+        data: PerenualPlant[];
+        total: number;
+        current_page: number;
+        last_page: number;
+      };
+
+      lastPage = json.last_page;
+      pagesFetched++;
+
+      const goodPlants = json.data
+        .filter((plant) => !isPaywallImage(plant.default_image?.medium_url))
+        .map((plant) => ({
+          id: String(plant.id),
+          name: plant.common_name,
+          imageUrl: plant.default_image?.medium_url ?? null,
+          watering: plant.watering ?? null,
+          sunlight: plant.sunlight?.join(", ") ?? null,
+        }));
+
+      collected.push(...goodPlants);
+
+      // If no more pages, stop
+      if (currentPage >= lastPage) break;
+
+      currentPage++;
+
+      // Small delay to avoid hitting Perenual's rate limit
+      await new Promise((r) => setTimeout(r, 200));
     }
-    const json = (await response.json()) as {
-      data: PerenualPlant[];
-      total: number;
-      current_page: number;
-      last_page: number;
-    };
-    const mapped = json.data.map((plant) => ({
-      id: String(plant.id),
-      name: plant.common_name,
-      imageUrl: plant.default_image?.medium_url ?? null,
-      watering: plant.watering ?? null,
-      sunlight: plant.sunlight?.join(", ") ?? null,
-    }));
+
     return res.status(200).json({
-      data: mapped,
+      data: collected,
       pagination: {
-        total: json.total,
-        currentPage: json.current_page,
-        lastPage: json.last_page,
-        hasNextPage: json.current_page < json.last_page,
+        total: collected.length,
+        currentPage: 1,
+        lastPage,
+        hasNextPage: false,
       },
     });
   } catch (error) {
@@ -96,13 +168,19 @@ export const getPlantById = async (req: Request, res: Response) => {
     }
     const plant = (await response.json()) as PerenualPlant;
 
-    // cloudinary upload
-    let imageUrl: string | null = null;
-    try {
-      imageUrl = await cloudinaryUpload(plant.default_image?.medium_url);
-    } catch {
-      console.log(`Image upload failed for plant ${plant.id}, skipping`);
+    // Detect paywall response BEFORE doing any work
+    if (isPaywallDetailsResponse(plant)) {
+      return res.status(403).json({
+        error: "Premium plant — details not available on free plan",
+        premium: true,
+      });
     }
+
+    // Cloudinary upload (skips paywall images automatically)
+    const imageUrl = await safeImageUpload(
+      plant.default_image?.medium_url,
+      plant.id,
+    );
     const mapped = {
       id: String(plant.id),
       name: plant.common_name,
@@ -143,6 +221,7 @@ export const getPlantsData = async (req: Request, res: Response) => {
     // Sequential fetch with delay — avoids burst that triggers 429
     const validPlants: PerenualPlant[] = [];
     let rateLimited = false;
+    let paywalledCount = 0;
 
     for (const id of idsToFetch) {
       const response = await fetch(
@@ -159,25 +238,30 @@ export const getPlantsData = async (req: Request, res: Response) => {
         // 404 or other — skip this id, continue
         continue;
       }
+      const plant = (await response.json()) as PerenualPlant;
+      // Skip paywalled plants so we don't store garbage rows
+      if (isPaywallDetailsResponse(plant)) {
+        paywalledCount++;
+        await new Promise((r) => setTimeout(r, 200));
+        continue;
+      }
 
-      validPlants.push((await response.json()) as PerenualPlant);
+      validPlants.push(plant);
 
       // Small delay between requests to stay under Perenual's limit
       await new Promise((r) => setTimeout(r, 200));
     }
 
-    // Upload images (also sequentially to avoid Cloudinary bursts)
+    // Upload images (sequentially, skips paywall placeholders automatically)
     const plantsWithImages: {
       plant: PerenualPlant;
       imageUrl: string | null;
     }[] = [];
     for (const plant of validPlants) {
-      let imageUrl: string | null = null;
-      try {
-        imageUrl = await cloudinaryUpload(plant.default_image?.medium_url);
-      } catch {
-        console.log(`Image upload failed for plant ${plant.id}, skipping`);
-      }
+      const imageUrl = await safeImageUpload(
+        plant.default_image?.medium_url,
+        plant.id,
+      );
       plantsWithImages.push({ plant, imageUrl });
     }
 

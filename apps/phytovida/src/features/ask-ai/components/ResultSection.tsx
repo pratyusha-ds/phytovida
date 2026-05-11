@@ -176,12 +176,6 @@ export function ResultSection({
               </>
             )}
 
-            <Separator />
-
-            {/* Remaining quota */}
-            <p className="text-xs text-muted-foreground text-center">
-              {diagnosis.remainingRequests} identifications remaining today
-            </p>
           </CardContent>
         </Card>
       )}

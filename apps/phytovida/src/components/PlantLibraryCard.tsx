@@ -9,12 +9,12 @@ const PLACEHOLDER_IMAGE =
   "https://img.freepik.com/free-vector/green-botany-flat-bush-vector_53876-164108.jpg";
 
 export function parseHardiness(hardiness: string | null | undefined) {
-    if (!hardiness) return null;
-    try {
-        return JSON.parse(hardiness) as { min: string; max: string };
-    } catch {
-        return null;
-    }
+  if (!hardiness) return null;
+  try {
+    return JSON.parse(hardiness) as { min: string; max: string };
+  } catch {
+    return null;
+  }
 }
 
 export function PlantLibraryCard({
@@ -41,6 +41,8 @@ export function PlantLibraryCard({
           className="absolute h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
           src={src}
           onError={() => setImgFailed(true)}
+          referrerPolicy="no-referrer"
+          loading="lazy"
           alt={name}
         />
         <div className="absolute p-5 bg-white/50 rounded-t-2xl backdrop-blur-xs h-28 translate-y-28 transition-all duration-500 group-hover:translate-y-0 bottom-0 left-0 w-full">

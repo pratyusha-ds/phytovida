@@ -79,7 +79,7 @@ export default function PlantDetails() {
               <div className="flex gap-2 items-center">
                 <Thermometer size={20} className="text-accent4" />
                 <p className="text-lg">
-                  Hardiness zones: {zones.min} – {zones.max}
+                  Hardiness zones: {zones.min} – {zones.max }°C
                 </p>
               </div>
             )}
