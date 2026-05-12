@@ -16,7 +16,7 @@ const router: Router = Router();
 router.use("/auth", authRoutes);
 
 // dashboard routes
-router.use("/dashboard", dashboardRoutes);
+router.use("/dashboard", authGuard, dashboardRoutes);
 
 // plants routes
 router.use("/plants", plantRoutes);

@@ -2,7 +2,41 @@ import type { Request, Response } from "express";
 import { db } from "../db/index.js";
 import { eq } from "drizzle-orm";
 import { userSettings, usersPlants, plants } from "../db/schema.js";
+import { selectPlantsThatNeedWatering } from "../services/user-plants.js";
+import { findUserById } from "./user-settings.js";
+import { User } from "../../types/user.js";
 
+export const getDashboard = async (req: Request, res: Response) => {
+  const userId = req.userId!;
+  let user: User | undefined = undefined;
+
+  const userAnswer = await findUserById(userId);
+
+  userAnswer.match(
+    (data) => {
+      user = data;
+    },
+    (error) => {
+      return res.status(error.status).json({ error: true, message: error.message });
+    }
+  )
+
+  const answer = await selectPlantsThatNeedWatering(userId);
+
+  answer.match(
+    (data) => {
+      res.status(200).json({location: user?.homeLocation, plants: data});
+    },
+    (error) => {
+      switch (error.reason) {
+        case "Unauthorized": { return res.status(403).json({ error: true, message: error.message }); break; }
+        default: { return res.status(500).json({ error: true, message: error.message }); break; }
+      }
+    }
+  )
+
+
+}
 export const getDashboardData = async (req: Request, res: Response) => {
   const { userId } = req.params;
 

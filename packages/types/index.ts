@@ -10,8 +10,9 @@ export interface Plant {
 	id: number;
 	name: string;
 	image: string | null;
-	waterFrequency: number;
+	wateringFrequency: number;
 	lastWatered: string | null;
+	phase: string;
 }
 
 export interface DashboardResponse {

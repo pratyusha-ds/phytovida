@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, lt, lte, sql } from "drizzle-orm";
 import { UserPlantCreation, UserPlantUpdate } from "../../types/user-plant.js";
 import { db } from "../db/index.js";
 import { userSettings, usersPlants, plants } from "../db/schema.js";
@@ -104,4 +104,40 @@ export const deleteUserPlant = async (userId: string, userPlantId: number) => {
         return errAsync({ reason: "InternalServerError", message: `${error} An error occured while updating user's plant` })
     }
 
+}
+
+
+export const selectPlantsThatNeedWatering = async (userId: string) => {
+    try {
+        const user = await db
+            .select()
+            .from(userSettings)
+            .where(eq(userSettings.userId, userId));
+
+        if (user.length === 0) {
+            return errAsync({ reason: "Unauthorized", message: `User was not found.` })
+        }
+
+        // select plants where the last_watered_date + watering_frequency >= today
+        return okAsync(await db
+            .select({
+                id: usersPlants.id,
+                name: plants.name,
+                image: plants.imageUrl,
+                wateringFrequency: usersPlants.wateringFrequency,
+                lastWatered: usersPlants.lastWateredDate,
+                phase: usersPlants.phase
+            })
+            .from(usersPlants)
+            .leftJoin(plants, eq(usersPlants.plantId, plants.id))
+            .where(and(
+                eq(usersPlants.userId, userId),
+                lte(
+                    sql`${usersPlants.lastWateredDate} + (${usersPlants.wateringFrequency} * interval '1 day')`,
+                    sql`now()`,
+                )
+            )))
+    } catch (error: any) {
+        return errAsync({ reason: "InternalServerError", message: `${error} An error occured while selecting plants that need to be watered` })
+    }
 }
